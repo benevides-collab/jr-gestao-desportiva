@@ -1,0 +1,760 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoleSlug {
+  admin
+  diretoria
+  secretaria
+  professor
+  assistente
+  financeiro
+  consulta
+}
+
+enum AthleteStatus {
+  active
+  inactive
+  away
+  trial
+}
+
+enum AthleteDocumentStatus {
+  pending
+  uploaded
+  under_review
+  approved
+  rejected
+  expiring
+  expired
+  waived
+}
+
+enum DocumentPeriodicity {
+  annual
+  semiannual
+  once
+  on_change
+  other
+}
+
+enum MonthlyFeeStatus {
+  open
+  paid
+  overdue
+  exempt
+  partial
+  canceled
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  justified_absence
+  late
+  medical_leave
+  partial
+}
+
+enum StaffMemberType {
+  teacher
+  assistant
+  coordinator
+  admin
+  finance
+  other
+}
+
+enum GuardianType {
+  mother
+  father
+  legal_guardian
+  relative
+  other
+}
+
+enum Gender {
+  female
+  male
+  non_binary
+  not_informed
+}
+
+enum SchoolType {
+  public
+  private
+  special
+  other
+  not_informed
+}
+
+enum BloodType {
+  a_positive
+  a_negative
+  b_positive
+  b_negative
+  ab_positive
+  ab_negative
+  o_positive
+  o_negative
+  unknown
+}
+
+enum CompetitionAthleteStatus {
+  called
+  confirmed
+  pending
+  canceled
+  participated
+  declined
+  attended
+  absent
+}
+
+enum CompetitionStatus {
+  planned
+  confirmed
+  completed
+  canceled
+}
+
+enum CompetitionMedal {
+  gold
+  silver
+  bronze
+  participation
+  none
+}
+
+enum PaymentMethod {
+  cash
+  pix
+  debit_card
+  credit_card
+  bank_transfer
+  card
+  boleto
+  other
+  not_informed
+}
+
+model User {
+  id                  String            @id @default(uuid()) @db.Uuid
+  name                String
+  email               String            @unique
+  passwordHash        String
+  roleId              String            @db.Uuid
+  staffMemberId       String?           @db.Uuid
+  isActive            Boolean           @default(true)
+  lastLoginAt         DateTime?
+  notes               String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  role                Role              @relation(fields: [roleId], references: [id])
+  staffMember         StaffMember?      @relation(fields: [staffMemberId], references: [id], onDelete: SetNull)
+  auditLogs           AuditLog[]
+  recordedAttendances Attendance[]      @relation("AttendanceRecordedBy")
+  updatedAttendances  Attendance[]      @relation("AttendanceUpdatedBy")
+  uploadedDocuments   AthleteDocument[] @relation("DocumentUploadedBy")
+  reviewedDocuments   AthleteDocument[] @relation("DocumentReviewedBy")
+  recordedPayments    Payment[]         @relation("PaymentRecordedBy")
+
+  @@index([roleId])
+  @@index([staffMemberId])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        RoleSlug @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  @@map("roles")
+}
+
+model Athlete {
+  id               String               @id @default(uuid()) @db.Uuid
+  fullName         String
+  preferredName    String?
+  photoUrl         String?
+  birthDate        DateTime
+  cpf              String?              @unique
+  rg               String?
+  gender           Gender?
+  phone            String?
+  email            String?
+  status           AthleteStatus        @default(trial)
+  joinedAt         DateTime?
+  monthlyFeeAmount Decimal?             @db.Decimal(10, 2)
+  notes            String?
+  addressId        String?              @db.Uuid
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  address          Address?             @relation(fields: [addressId], references: [id])
+  guardians        AthleteGuardian[]
+  schools          AthleteSchool[]
+  medicalInfo      AthleteMedicalInfo?
+  classes          AthleteClass[]
+  documents        AthleteDocument[]
+  attendance       Attendance[]
+  competitions     CompetitionAthlete[]
+  monthlyFees      MonthlyFee[]
+
+  @@index([addressId])
+  @@index([status])
+  @@map("athletes")
+}
+
+model Guardian {
+  id          String            @id @default(uuid()) @db.Uuid
+  fullName    String
+  photoUrl    String?
+  cpf         String?           @unique
+  rg          String?
+  email       String?
+  phone       String?
+  whatsapp    String?
+  type        GuardianType      @default(other)
+  notes       String?
+  addressId   String?           @db.Uuid
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  address     Address?          @relation(fields: [addressId], references: [id])
+  athletes    AthleteGuardian[]
+  monthlyFees MonthlyFee[]
+
+  @@index([addressId])
+  @@map("guardians")
+}
+
+model AthleteGuardian {
+  id                  String   @id @default(uuid()) @db.Uuid
+  athleteId           String   @db.Uuid
+  guardianId          String   @db.Uuid
+  relationship        String
+  isPrimary           Boolean  @default(false)
+  isLegalGuardian     Boolean  @default(false)
+  isFinancialGuardian Boolean  @default(false)
+  isEmergencyContact  Boolean  @default(false)
+  canPickup           Boolean  @default(false)
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  athlete             Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  guardian            Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  @@unique([athleteId, guardianId])
+  @@index([guardianId])
+  @@map("athlete_guardians")
+}
+
+model Address {
+  id                String             @id @default(uuid()) @db.Uuid
+  postalCode        String?
+  street            String?
+  number            String?
+  complement        String?
+  neighborhood      String?
+  city              String?
+  state             String?
+  country           String             @default("Brasil")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  athletes          Athlete[]
+  guardians         Guardian[]
+  schools           School[]
+  doctors           Doctor[]
+  trainingLocations TrainingLocation[]
+
+  @@map("addresses")
+}
+
+model School {
+  id                      String          @id @default(uuid()) @db.Uuid
+  name                    String
+  schoolType              SchoolType      @default(other)
+  phone                   String?
+  email                   String?
+  notes                   String?
+  coordinatorName         String?
+  coordinatorPhone        String?
+  coordinatorEmail        String?
+  pedagogicalContactName  String?
+  pedagogicalContactPhone String?
+  pedagogicalContactEmail String?
+  pedagogicalContactRole  String?
+  addressId               String?         @db.Uuid
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  address                 Address?        @relation(fields: [addressId], references: [id])
+  athletes                AthleteSchool[]
+
+  @@index([addressId])
+  @@map("schools")
+}
+
+model AthleteSchool {
+  id                        String    @id @default(uuid()) @db.Uuid
+  athleteId                 String    @db.Uuid
+  schoolId                  String    @db.Uuid
+  grade                     String?
+  shift                     String?
+  enrollmentNumber          String?
+  startedAt                 DateTime?
+  endedAt                   DateTime?
+  isCurrent                 Boolean   @default(true)
+  therapeuticCompanionName  String?
+  therapeuticCompanionPhone String?
+  therapeuticCompanionEmail String?
+  therapeuticCompanionNotes String?
+  schoolNotes               String?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+  athlete                   Athlete   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  school                    School    @relation(fields: [schoolId], references: [id])
+
+  @@unique([athleteId, schoolId, startedAt])
+  @@index([schoolId])
+  @@map("athlete_schools")
+}
+
+model Doctor {
+  id           String               @id @default(uuid()) @db.Uuid
+  fullName     String
+  specialty    String?
+  crm          String?
+  phone        String?
+  email        String?
+  clinicName   String?
+  addressId    String?              @db.Uuid
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  address      Address?             @relation(fields: [addressId], references: [id])
+  medicalInfos AthleteMedicalInfo[]
+
+  @@index([addressId])
+  @@map("doctors")
+}
+
+model AthleteMedicalInfo {
+  id                               String           @id @default(uuid()) @db.Uuid
+  athleteId                        String           @unique @db.Uuid
+  doctorId                         String?          @db.Uuid
+  bloodType                        BloodType?
+  allergies                        String?
+  medications                      String?
+  diagnoses                        String?
+  restrictions                     String?
+  physicalRestrictions             String?
+  continuousMedication             String?
+  trainingNotes                    String?
+  emergencyMedicalContact          String?
+  emergencyMedicalPhone            String?
+  hasHadSurgery                    Boolean?
+  surgeryDate                      DateTime?
+  lastMedicalCertificateDate       DateTime?
+  medicalCertificateExpirationDate DateTime?
+  isFitForPhysicalActivity         Boolean?
+  internalMedicalNotes             String?
+  emergencyNotes                   String?
+  healthInsurance                  String?
+  healthInsuranceCard              String?
+  createdAt                        DateTime         @default(now())
+  updatedAt                        DateTime         @updatedAt
+  athlete                          Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  doctor                           Doctor?          @relation(fields: [doctorId], references: [id])
+  surgeries                        AthleteSurgery[]
+
+  @@index([doctorId])
+  @@map("athlete_medical_infos")
+}
+
+model AthleteSurgery {
+  id            String             @id @default(uuid()) @db.Uuid
+  medicalInfoId String             @db.Uuid
+  name          String
+  surgeryDate   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  medicalInfo   AthleteMedicalInfo @relation(fields: [medicalInfoId], references: [id], onDelete: Cascade)
+
+  @@index([medicalInfoId])
+  @@map("athlete_surgeries")
+}
+
+model Modality {
+  id           String          @id @default(uuid()) @db.Uuid
+  name         String          @unique
+  description  String?
+  notes        String?
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  classes      TrainingClass[]
+  staff        StaffModality[]
+  competitions Competition[]
+
+  @@map("modalities")
+}
+
+model TrainingLocation {
+  id            String          @id @default(uuid()) @db.Uuid
+  name          String
+  addressId     String?         @db.Uuid
+  mapUrl        String?
+  accessibility String?
+  notes         String?
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  address       Address?        @relation(fields: [addressId], references: [id])
+  classes       TrainingClass[]
+
+  @@index([addressId])
+  @@map("training_locations")
+}
+
+model StaffMember {
+  id                        String                   @id @default(uuid()) @db.Uuid
+  fullName                  String
+  photoUrl                  String?
+  cpf                       String?
+  rg                        String?
+  email                     String?
+  phone                     String?
+  whatsapp                  String?
+  documentNumber            String?
+  type                      StaffMemberType
+  notes                     String?
+  isActive                  Boolean                  @default(true)
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  modalities                StaffModality[]
+  taughtClasses             TrainingClass[]          @relation("ClassTeacher")
+  assistedClasses           TrainingClass[]          @relation("ClassAssistant")
+  classAssistantLinks       TrainingClassAssistant[]
+  responsibleCompetitions   Competition[]            @relation("CompetitionResponsibleTeacher")
+  competitionAssistantLinks CompetitionAssistant[]
+  users                     User[]
+
+  @@index([type])
+  @@map("staff_members")
+}
+
+model StaffModality {
+  id            String      @id @default(uuid()) @db.Uuid
+  staffMemberId String      @db.Uuid
+  modalityId    String      @db.Uuid
+  createdAt     DateTime    @default(now())
+  staffMember   StaffMember @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+  modality      Modality    @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+
+  @@unique([staffMemberId, modalityId])
+  @@index([modalityId])
+  @@map("staff_modalities")
+}
+
+model TrainingClass {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  name               String
+  modalityId         String                   @db.Uuid
+  trainingLocationId String                   @db.Uuid
+  teacherId          String                   @db.Uuid
+  assistantId        String?                  @db.Uuid
+  capacity           Int?
+  notes              String?
+  isActive           Boolean                  @default(true)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  modality           Modality                 @relation(fields: [modalityId], references: [id])
+  trainingLocation   TrainingLocation         @relation(fields: [trainingLocationId], references: [id])
+  teacher            StaffMember              @relation("ClassTeacher", fields: [teacherId], references: [id])
+  assistant          StaffMember?             @relation("ClassAssistant", fields: [assistantId], references: [id])
+  assistants         TrainingClassAssistant[]
+  schedules          ClassSchedule[]
+  athletes           AthleteClass[]
+  attendance         Attendance[]
+
+  @@index([modalityId])
+  @@index([trainingLocationId])
+  @@index([teacherId])
+  @@index([assistantId])
+  @@map("training_classes")
+}
+
+model TrainingClassAssistant {
+  id              String        @id @default(uuid()) @db.Uuid
+  trainingClassId String        @db.Uuid
+  staffMemberId   String        @db.Uuid
+  createdAt       DateTime      @default(now())
+  trainingClass   TrainingClass @relation(fields: [trainingClassId], references: [id], onDelete: Cascade)
+  staffMember     StaffMember   @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([trainingClassId, staffMemberId])
+  @@index([staffMemberId])
+  @@map("training_class_assistants")
+}
+
+model ClassSchedule {
+  id              String        @id @default(uuid()) @db.Uuid
+  trainingClassId String        @db.Uuid
+  weekday         Int
+  startTime       String
+  endTime         String
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  trainingClass   TrainingClass @relation(fields: [trainingClassId], references: [id], onDelete: Cascade)
+
+  @@index([trainingClassId])
+  @@map("class_schedules")
+}
+
+model AthleteClass {
+  id              String        @id @default(uuid()) @db.Uuid
+  athleteId       String        @db.Uuid
+  trainingClassId String        @db.Uuid
+  joinedAt        DateTime?
+  leftAt          DateTime?
+  status          String        @default("active")
+  notes           String?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  athlete         Athlete       @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  trainingClass   TrainingClass @relation(fields: [trainingClassId], references: [id], onDelete: Cascade)
+
+  @@unique([athleteId, trainingClassId])
+  @@index([trainingClassId])
+  @@map("athlete_classes")
+}
+
+model DocumentType {
+  id                     String              @id @default(uuid()) @db.Uuid
+  name                   String              @unique
+  description            String?
+  isRequired             Boolean             @default(true)
+  requiresExpirationDate Boolean             @default(false)
+  periodicity            DocumentPeriodicity @default(annual)
+  appliesToMinors        Boolean             @default(true)
+  appliesToAdults        Boolean             @default(true)
+  isAnnual               Boolean             @default(false)
+  requiresReview         Boolean             @default(true)
+  isActive               Boolean             @default(true)
+  notes                  String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  athleteDocuments       AthleteDocument[]
+
+  @@map("document_types")
+}
+
+model AthleteDocument {
+  id                   String                @id @default(uuid()) @db.Uuid
+  athleteId            String                @db.Uuid
+  documentTypeId       String                @db.Uuid
+  status               AthleteDocumentStatus @default(pending)
+  referenceYear        Int?
+  fileName             String?
+  fileUrl              String?
+  filePath             String?
+  originalFileName     String?
+  mimeType             String?
+  fileSize             Int?
+  issueDate            DateTime?
+  expirationDate       DateTime?
+  uploadedByUserId     String?               @db.Uuid
+  uploadedAt           DateTime?
+  reviewedByUserId     String?               @db.Uuid
+  reviewedAt           DateTime?
+  rejectionReason      String?
+  replacedByDocumentId String?               @db.Uuid
+  expiresAt            DateTime?
+  notes                String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  athlete              Athlete               @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  documentType         DocumentType          @relation(fields: [documentTypeId], references: [id])
+  uploadedByUser       User?                 @relation("DocumentUploadedBy", fields: [uploadedByUserId], references: [id])
+  reviewedByUser       User?                 @relation("DocumentReviewedBy", fields: [reviewedByUserId], references: [id])
+  replacedByDocument   AthleteDocument?      @relation("DocumentReplacement", fields: [replacedByDocumentId], references: [id])
+  replacesDocuments    AthleteDocument[]     @relation("DocumentReplacement")
+
+  @@index([athleteId, documentTypeId, referenceYear])
+  @@index([documentTypeId])
+  @@index([uploadedByUserId])
+  @@index([reviewedByUserId])
+  @@index([replacedByDocumentId])
+  @@index([status])
+  @@map("athlete_documents")
+}
+
+model Attendance {
+  id               String           @id @default(uuid()) @db.Uuid
+  athleteId        String           @db.Uuid
+  trainingClassId  String           @db.Uuid
+  attendanceDate   DateTime
+  status           AttendanceStatus @default(present)
+  notes            String?
+  recordedByUserId String?          @db.Uuid
+  updatedByUserId  String?          @db.Uuid
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  athlete          Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  trainingClass    TrainingClass    @relation(fields: [trainingClassId], references: [id], onDelete: Cascade)
+  recordedByUser   User?            @relation("AttendanceRecordedBy", fields: [recordedByUserId], references: [id])
+  updatedByUser    User?            @relation("AttendanceUpdatedBy", fields: [updatedByUserId], references: [id])
+
+  @@unique([athleteId, trainingClassId, attendanceDate])
+  @@index([trainingClassId, attendanceDate])
+  @@index([recordedByUserId])
+  @@index([updatedByUserId])
+  @@index([status])
+  @@map("attendances")
+}
+
+model Competition {
+  id                   String                 @id @default(uuid()) @db.Uuid
+  name                 String
+  modalityId           String?                @db.Uuid
+  responsibleTeacherId String?                @db.Uuid
+  location             String?
+  address              String?
+  city                 String?
+  state                String?
+  organizer            String?
+  meetingTime          String?
+  transportation       String?
+  status               CompetitionStatus      @default(planned)
+  startsAt             DateTime
+  endsAt               DateTime?
+  notes                String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  modality             Modality?              @relation(fields: [modalityId], references: [id])
+  responsibleTeacher   StaffMember?           @relation("CompetitionResponsibleTeacher", fields: [responsibleTeacherId], references: [id])
+  assistants           CompetitionAssistant[]
+  athletes             CompetitionAthlete[]
+
+  @@index([modalityId])
+  @@index([responsibleTeacherId])
+  @@index([status])
+  @@map("competitions")
+}
+
+model CompetitionAssistant {
+  id            String      @id @default(uuid()) @db.Uuid
+  competitionId String      @db.Uuid
+  staffMemberId String      @db.Uuid
+  createdAt     DateTime    @default(now())
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  staffMember   StaffMember @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, staffMemberId])
+  @@index([staffMemberId])
+  @@map("competition_assistants")
+}
+
+model CompetitionAthlete {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  competitionId      String                   @db.Uuid
+  athleteId          String                   @db.Uuid
+  status             CompetitionAthleteStatus @default(called)
+  documentsOk        Boolean                  @default(false)
+  medicalClearanceOk Boolean                  @default(false)
+  guardianOk         Boolean                  @default(false)
+  presenceConfirmed  Boolean                  @default(false)
+  participated       Boolean                  @default(false)
+  result             String?
+  placement          String?
+  medal              CompetitionMedal         @default(none)
+  notes              String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  competition        Competition              @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  athlete            Athlete                  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, athleteId])
+  @@index([athleteId])
+  @@index([status])
+  @@map("competition_athletes")
+}
+
+model MonthlyFee {
+  id                  String           @id @default(uuid()) @db.Uuid
+  athleteId           String           @db.Uuid
+  financialGuardianId String?          @db.Uuid
+  referenceMonth      Int
+  referenceYear       Int
+  dueDate             DateTime
+  amount              Decimal          @db.Decimal(10, 2)
+  discountAmount      Decimal          @default(0) @db.Decimal(10, 2)
+  status              MonthlyFeeStatus @default(open)
+  notes               String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  athlete             Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  financialGuardian   Guardian?        @relation(fields: [financialGuardianId], references: [id], onDelete: SetNull)
+  payments            Payment[]
+
+  @@unique([athleteId, referenceMonth, referenceYear])
+  @@index([financialGuardianId])
+  @@index([status])
+  @@map("monthly_fees")
+}
+
+model Payment {
+  id               String        @id @default(uuid()) @db.Uuid
+  monthlyFeeId     String        @db.Uuid
+  amount           Decimal       @db.Decimal(10, 2)
+  paidAt           DateTime
+  method           PaymentMethod
+  receiptCode      String?
+  notes            String?
+  recordedByUserId String?       @db.Uuid
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  monthlyFee       MonthlyFee    @relation(fields: [monthlyFeeId], references: [id], onDelete: Cascade)
+  recordedByUser   User?         @relation("PaymentRecordedBy", fields: [recordedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([monthlyFeeId])
+  @@index([recordedByUserId])
+  @@map("payments")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @db.Uuid
+  action    String
+  entity    String
+  entityId  String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}

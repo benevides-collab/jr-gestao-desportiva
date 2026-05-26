@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: jr_gestao_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jr_gestao_desportiva
+    ports:
+      - "5432:5432"
+    volumes:
+      - jr_gestao_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  jr_gestao_postgres_data:
