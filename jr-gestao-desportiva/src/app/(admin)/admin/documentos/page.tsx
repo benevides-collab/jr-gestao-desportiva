@@ -1,6 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { AthleteDocumentStatus, Prisma } from "@prisma/client";
+import type { AthleteDocumentStatus } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ const alertOptions = [
   { value: "", label: "Todos" },
   { value: "expired", label: "Vencidos" },
   { value: "expiring", label: "Vencendo em 30 dias" },
-  { value: "review", label: "Aguardando análise" },
+  { value: "review", label: "Aguardando anÃ¡lise" },
 ];
 
 export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
@@ -57,7 +57,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
   today.setHours(0, 0, 0, 0);
   const thirtyDays = new Date(today);
   thirtyDays.setDate(thirtyDays.getDate() + 30);
-  const athleteWhere: Prisma.AthleteWhereInput = {
+  const athleteWhere = {
     ...(filters.athleteId ? { id: filters.athleteId } : {}),
     ...(filters.modalityId || filters.trainingClassId
       ? {
@@ -75,7 +75,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       : {}),
   };
 
-  const where: Prisma.AthleteDocumentWhereInput = {
+  const where = {
     ...(filters.referenceYear ? { referenceYear: filters.referenceYear } : {}),
     ...(filters.documentTypeId ? { documentTypeId: filters.documentTypeId } : {}),
     ...(filters.status ? { status: filters.status } : {}),
@@ -85,7 +85,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       : filters.alert === "expiring"
         ? { expirationDate: { gte: today, lte: thirtyDays } }
         : filters.alert === "review"
-          ? { status: { in: ["uploaded", "under_review"] } }
+          ? { status: { in: ["uploaded", "under_review"] as AthleteDocumentStatus[] } }
           : {}),
   };
 
@@ -149,7 +149,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
             Documentos anuais
           </h1>
           <p className="mt-2 text-sm text-zinc-600">
-            Controle documental dos atletas, validade, análise e pendências.
+            Controle documental dos atletas, validade, anÃ¡lise e pendÃªncias.
           </p>
         </div>
         {canManage ? (
@@ -161,7 +161,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
 
       {query.erro ? (
         <div className="rounded-md border border-jr-red/20 bg-jr-red/10 p-3 text-sm font-bold text-jr-red">
-          Arquivo indisponível para visualização.
+          Arquivo indisponÃ­vel para visualizaÃ§Ã£o.
         </div>
       ) : null}
 
@@ -169,12 +169,12 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
         <SummaryCard label="Pendentes" value={String(summary.pending)} />
         <SummaryCard label="Vencidos" value={String(summary.expired)} />
         <SummaryCard label="Vencendo em 30 dias" value={String(summary.expiring)} />
-        <SummaryCard label="Aguardando análise" value={String(summary.underReview)} />
+        <SummaryCard label="Aguardando anÃ¡lise" value={String(summary.underReview)} />
         <SummaryCard
-          label="Sem atestado válido"
+          label="Sem atestado vÃ¡lido"
           value={String(summary.withoutValidMedicalCertificate)}
         />
-        <SummaryCard label="Documentação completa" value={String(summary.complete)} />
+        <SummaryCard label="DocumentaÃ§Ã£o completa" value={String(summary.complete)} />
       </div>
 
       <Card>
@@ -279,7 +279,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                 <th className="px-4 py-3">Ano</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Validade</th>
-                <th className="px-4 py-3">Análise</th>
+                <th className="px-4 py-3">AnÃ¡lise</th>
                 <th className="px-4 py-3 text-right">Arquivo</th>
               </tr>
             </thead>
@@ -366,7 +366,12 @@ function buildFilters(query: Awaited<DocumentsPageProps["searchParams"]>) {
 
 function buildSummary(
   athletes: Array<{ id: string; birthDate: Date }>,
-  documentTypes: Prisma.DocumentTypeGetPayload<object>[],
+  documentTypes: Array<{
+    id: string;
+    isRequired: boolean;
+    appliesToMinors: boolean;
+    appliesToAdults: boolean;
+  }>,
   documents: Array<{
     athleteId: string;
     documentTypeId: string;
@@ -471,3 +476,5 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
     </Card>
   );
 }
+
+

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
-
+import type { AthleteDocumentStatus, DocumentPeriodicity } from "@prisma/client";
 import {
   approveAthleteDocument,
   rejectAthleteDocument,
@@ -26,27 +25,42 @@ import {
   isMedicalCertificateName,
 } from "@/lib/documents";
 
-type AthleteForDocuments = Prisma.AthleteGetPayload<{
-  include: {
-    address: true;
-    guardians: true;
-    schools: true;
-    medicalInfo: true;
-    classes: true;
-  };
-}>;
+type AthleteForDocuments = {
+  id: string;
+  birthDate: Date;
+};
 
-type AthleteDocumentRow = Prisma.AthleteDocumentGetPayload<{
-  include: {
-    documentType: true;
-    uploadedByUser: true;
-    reviewedByUser: true;
-  };
-}>;
+type DocumentTypeRow = {
+  id: string;
+  name: string;
+  isRequired: boolean;
+  periodicity: string | null;
+  appliesToMinors: boolean;
+  appliesToAdults: boolean;
+};
+
+type AthleteDocumentRow = {
+  id: string;
+  documentTypeId: string;
+  referenceYear: number | null;
+  filePath: string | null;
+  fileName: string | null;
+  originalFileName: string | null;
+  status: AthleteDocumentStatus;
+  expirationDate: Date | null;
+  expiresAt: Date | null;
+  uploadedAt: Date | null;
+  reviewedAt: Date | null;
+  rejectionReason: string | null;
+  notes: string | null;
+  documentType: DocumentTypeRow;
+  uploadedByUser: { name: string | null } | null;
+  reviewedByUser: { name: string | null } | null;
+};
 
 type AthleteDocumentsTabProps = {
   athlete: AthleteForDocuments;
-  documentTypes: Prisma.DocumentTypeGetPayload<object>[];
+  documentTypes: DocumentTypeRow[];
   documents: AthleteDocumentRow[];
   filters: {
     referenceYear: number;
@@ -253,7 +267,9 @@ export function AthleteDocumentsTab({
                     <td className="px-4 py-3 font-bold text-zinc-950">
                       {type.name}
                       <p className="mt-1 font-normal text-zinc-600">
-                        {documentPeriodicityLabel(type.periodicity)}
+                        {type.periodicity
+  ? documentPeriodicityLabel(type.periodicity as DocumentPeriodicity)
+  : "Não informado"}
                       </p>
                     </td>
                     <td className="px-4 py-3">{type.isRequired ? "Sim" : "Não"}</td>

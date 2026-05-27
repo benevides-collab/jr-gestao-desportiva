@@ -1,7 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Search, ShieldAlert } from "lucide-react";
-import type { Prisma } from "@prisma/client";
 
 import { AthleteAvatar } from "@/components/app/athlete-avatar";
 import { Button } from "@/components/ui/button";
@@ -56,28 +55,57 @@ export default async function AtletasPage({ searchParams }: AtletasPageProps) {
   const trainingClassId = params.turma ?? "";
   const canManage = canManageAthletes(user.role);
 
-  const where: Prisma.AthleteWhereInput = {
-    ...(athleteId ? { id: athleteId } : {}),
-    ...(status ? { status: status as Prisma.EnumAthleteStatusFilter } : {}),
-    ...(gender ? { gender: gender as Prisma.EnumGenderNullableFilter } : {}),
-    ...(modalityId || trainingLocationId || trainingClassId
-      ? {
-          classes: {
-            some: {
-              ...(trainingClassId ? { trainingClassId } : {}),
-              ...(modalityId || trainingLocationId
-                ? {
-                    trainingClass: {
-                      ...(modalityId ? { modalityId } : {}),
-                      ...(trainingLocationId ? { trainingLocationId } : {}),
-                    },
-                  }
-                : {}),
+  type GenderFilter = "male" | "female" | "not_informed";
+
+function parseGenderFilter(value: string | undefined): GenderFilter | undefined {
+  if (
+    value === "male" ||
+    value === "female" ||
+    value === "not_informed"
+  ) {
+    return value;
+  }
+
+  return undefined;
+}
+
+const genderFilter = parseGenderFilter(gender);
+
+type AthleteStatusFilter = "active" | "inactive" | "away" | "trial";
+
+function parseAthleteStatusFilter(value: string | undefined): AthleteStatusFilter | undefined {
+  if (
+    value === "active" ||
+    value === "inactive" ||
+    value === "away" ||
+    value === "trial"
+  ) {
+    return value;
+  }
+
+  return undefined;
+}
+
+const statusFilter = parseAthleteStatusFilter(status);
+
+const where = {
+  ...(athleteId ? { id: athleteId } : {}),
+  ...(statusFilter ? { status: statusFilter } : {}),
+  ...(genderFilter ? { gender: genderFilter } : {}),
+  ...(modalityId || trainingLocationId || trainingClassId
+    ? {
+        classes: {
+          some: {
+            ...(trainingClassId ? { trainingClassId } : {}),
+            trainingClass: {
+              ...(modalityId ? { modalityId } : {}),
+              ...(trainingLocationId ? { trainingLocationId } : {}),
             },
           },
-        }
-      : {}),
-  };
+        },
+      }
+    : {}),
+};
 
   const [athletesRaw, athleteOptions, modalities, locations, classes] = await Promise.all([
     getPrisma().athlete.findMany({
@@ -141,7 +169,7 @@ export default async function AtletasPage({ searchParams }: AtletasPageProps) {
             Atletas
           </h1>
           <p className="mt-2 text-sm leading-6 text-zinc-600">
-            Cadastro base de atletas da Associação Paradesportiva JR-SP.
+            Cadastro base de atletas da AssociaÃ§Ã£o Paradesportiva JR-SP.
           </p>
         </div>
         {canManage ? (
@@ -264,7 +292,7 @@ export default async function AtletasPage({ searchParams }: AtletasPageProps) {
                 <TableHead>Sexo</TableHead>
                 <TableHead>Cidade</TableHead>
                 <TableHead>Turmas</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -343,3 +371,7 @@ export default async function AtletasPage({ searchParams }: AtletasPageProps) {
     </div>
   );
 }
+
+
+
+

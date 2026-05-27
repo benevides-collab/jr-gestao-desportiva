@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Search } from "lucide-react";
-import type { Prisma } from "@prisma/client";
 
 import { PersonAvatar } from "@/components/app/person-avatar";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,7 @@ export default async function ResponsaveisPage({
   const canManage = canManageGuardians(user.role);
   const canViewFull = canViewFullGuardianData(user.role);
 
-  const guardianFilters: Prisma.GuardianWhereInput[] = [];
+  const guardianFilters: Array<Record<string, unknown>> = [];
 
   if (athleteId) {
     guardianFilters.push({ athletes: { some: { athleteId } } });
@@ -71,8 +70,7 @@ export default async function ResponsaveisPage({
     guardianFilters.push({ athletes: { some: { isEmergencyContact: true } } });
   }
 
-  const where: Prisma.GuardianWhereInput =
-    guardianFilters.length > 0 ? { AND: guardianFilters } : {};
+  const where = guardianFilters.length > 0 ? { AND: guardianFilters } : {};
 
   const [guardians, athleteOptions] = await Promise.all([
     getPrisma().guardian.findMany({

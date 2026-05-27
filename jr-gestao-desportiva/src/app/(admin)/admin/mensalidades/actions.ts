@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { redirect } from "next/navigation";
 import type { MonthlyFeeStatus, PaymentMethod } from "@prisma/client";
@@ -21,7 +21,7 @@ function text(formData: FormData, key: string) {
 function requiredText(formData: FormData, key: string) {
   const value = text(formData, key);
   if (!value) {
-    throw new Error(`Campo obrigatório: ${key}`);
+    throw new Error(`Campo obrigatÃ³rio: ${key}`);
   }
   return value;
 }
@@ -30,7 +30,7 @@ function numberValue(formData: FormData, key: string) {
   const value = requiredText(formData, key);
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) {
-    throw new Error(`Campo inválido: ${key}`);
+    throw new Error(`Campo invÃ¡lido: ${key}`);
   }
   return parsed;
 }
@@ -108,7 +108,7 @@ async function requireDatabaseFinanceManager() {
   const sessionUser = await requireFinanceManager();
   const dbUser = await resolveDatabaseUser(sessionUser);
   if (!dbUser) {
-    throw new Error("Usuário não autenticado ou inválido.");
+    throw new Error("UsuÃ¡rio nÃ£o autenticado ou invÃ¡lido.");
   }
   return dbUser;
 }
@@ -161,10 +161,9 @@ export async function updateAthleteMonthlyFeeAmount(formData: FormData) {
 
   await getPrisma().athlete.update({
     where: { id: athleteId },
-    data: {
-      monthlyFeeAmount:
-        monthlyFeeAmount.greaterThan(0) ? monthlyFeeAmount : null,
-    },
+data: {
+  monthlyFeeAmount: Number(monthlyFeeAmount) > 0 ? monthlyFeeAmount : null,
+},
   });
 
   redirect(`/admin/atletas/${athleteId}?aba=financeiro`);
@@ -176,7 +175,7 @@ export async function registerPayment(formData: FormData) {
   const athleteId = requiredText(formData, "athleteId");
   const amount = parseMoney(text(formData, "amountPaid"));
 
-  if (amount.lessThanOrEqualTo(0)) {
+  if (Number(amount) <= 0) {
     redirect(`/admin/atletas/${athleteId}?aba=financeiro&erro=valor-pagamento`);
   }
 
@@ -239,3 +238,4 @@ export async function cancelMonthlyFee(formData: FormData) {
 
   redirect(`/admin/atletas/${athleteId}?aba=financeiro`);
 }
+

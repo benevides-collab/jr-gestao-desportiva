@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { getPrisma } from "@/lib/prisma";
 import type { SessionUser } from "@/lib/auth";
 
@@ -11,8 +9,8 @@ type AuditInput = {
   action: string;
   entity: string;
   entityId?: string;
-  oldValues?: Prisma.InputJsonValue;
-  newValues?: Prisma.InputJsonValue;
+  oldValues?: unknown;
+  newValues?: unknown;
 };
 
 export async function registerAuditLog(input: AuditInput) {
@@ -24,8 +22,8 @@ export async function registerAuditLog(input: AuditInput) {
         action: input.action,
         entity: input.entity,
         entityId: input.entityId,
-        oldValues: input.oldValues === undefined ? undefined : input.oldValues,
-        newValues: input.newValues === undefined ? undefined : input.newValues,
+        oldValues: input.oldValues === undefined ? undefined : (input.oldValues as never),
+        newValues: input.newValues === undefined ? undefined : (input.newValues as never),
       },
     });
   } catch {

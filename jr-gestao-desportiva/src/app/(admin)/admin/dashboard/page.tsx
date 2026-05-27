@@ -316,7 +316,7 @@ async function loadDashboardValues() {
     0,
   );
   const expectedThisMonth = feesThisMonth.reduce(
-    (total, fee) => total + netAmount(fee).toNumber(),
+    (total, fee) => total + netAmount(fee),
     0,
   );
 

@@ -1,5 +1,21 @@
 import type { MonthlyFeeStatus, PaymentMethod } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+
+type MoneyValue =
+  | number
+  | string
+  | {
+      toNumber: () => number;
+    }
+  | null
+  | undefined;
+
+function toNumber(value: MoneyValue) {
+  if (value && typeof value === "object" && "toNumber" in value) {
+    return value.toNumber();
+  }
+
+  return Number(value ?? 0);
+}
 
 export const monthlyFeeStatusOptions: Array<{
   value: MonthlyFeeStatus;
@@ -76,14 +92,14 @@ export function parseMoney(value: string | null | undefined) {
   const number = Number.parseFloat(normalized);
 
   if (!Number.isFinite(number) || number < 0) {
-    return new Prisma.Decimal(0);
+    return "0.00";
   }
 
-  return new Prisma.Decimal(number.toFixed(2));
+  return number.toFixed(2);
 }
 
-export function formatCurrency(value: Prisma.Decimal | number | string | null | undefined) {
-  const number = value instanceof Prisma.Decimal ? value.toNumber() : Number(value ?? 0);
+export function formatCurrency(value: MoneyValue) {
+  const number = toNumber(value);
 
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -91,47 +107,44 @@ export function formatCurrency(value: Prisma.Decimal | number | string | null | 
   }).format(Number.isFinite(number) ? number : 0);
 }
 
-export function paidAmount(payments: Array<{ amount: Prisma.Decimal }>) {
-  return payments.reduce(
-    (total, payment) => total.plus(payment.amount),
-    new Prisma.Decimal(0)
-  );
+export function paidAmount(payments: Array<{ amount: MoneyValue }>) {
+  return payments.reduce((total, payment) => total + toNumber(payment.amount), 0);
 }
 
 export function netAmount(fee: {
-  amount: Prisma.Decimal;
-  discountAmount: Prisma.Decimal;
+  amount: MoneyValue;
+  discountAmount: MoneyValue;
 }) {
-  const value = fee.amount.minus(fee.discountAmount);
-  return value.lessThan(0) ? new Prisma.Decimal(0) : value;
+  const value = toNumber(fee.amount) - toNumber(fee.discountAmount);
+  return value < 0 ? 0 : value;
 }
 
 export function outstandingAmount(fee: {
-  amount: Prisma.Decimal;
-  discountAmount: Prisma.Decimal;
-  payments: Array<{ amount: Prisma.Decimal }>;
+  amount: MoneyValue;
+  discountAmount: MoneyValue;
+  payments: Array<{ amount: MoneyValue }>;
 }) {
-  const balance = netAmount(fee).minus(paidAmount(fee.payments));
-  return balance.lessThan(0) ? new Prisma.Decimal(0) : balance;
+  const balance = netAmount(fee) - paidAmount(fee.payments);
+  return balance < 0 ? 0 : balance;
 }
 
 export function nextStatusAfterPayment(fee: {
-  amount: Prisma.Decimal;
-  discountAmount: Prisma.Decimal;
-  payments: Array<{ amount: Prisma.Decimal }>;
+  amount: MoneyValue;
+  discountAmount: MoneyValue;
+  payments: Array<{ amount: MoneyValue }>;
 }): MonthlyFeeStatus {
   const paid = paidAmount(fee.payments);
   const total = netAmount(fee);
 
-  if (total.equals(0)) {
+  if (total === 0) {
     return "exempt";
   }
 
-  if (paid.greaterThanOrEqualTo(total)) {
+  if (paid >= total) {
     return "paid";
   }
 
-  if (paid.greaterThan(0)) {
+  if (paid > 0) {
     return "partial";
   }
 

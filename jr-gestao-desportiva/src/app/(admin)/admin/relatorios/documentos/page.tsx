@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { AthleteDocumentStatus, Prisma } from "@prisma/client";
+import type { AthleteDocumentStatus } from "@prisma/client";
 
 import {
   FilterActions,
@@ -51,40 +51,57 @@ export default async function DocumentReportPage({ searchParams }: PageProps) {
   const thirtyDays = new Date(today);
   thirtyDays.setDate(thirtyDays.getDate() + 30);
 
-  const where: Prisma.AthleteDocumentWhereInput = {
-    ...(athleteId ? { athleteId } : {}),
-    ...(Number.isFinite(referenceYear) ? { referenceYear } : {}),
-    ...(documentTypeId ? { documentTypeId } : {}),
-    ...(status ? { status: status as AthleteDocumentStatus } : {}),
-    ...(required ? { documentType: { isRequired: required === "sim" } } : {}),
-    ...(medicalCertificate === "sim"
-      ? { documentType: { name: { contains: "Atestado", mode: "insensitive" } } }
-      : {}),
-    ...(modalityId || trainingClassId
-      ? {
-          athlete: {
-            classes: {
-              some: {
-                ...(trainingClassId ? { trainingClassId } : {}),
-                ...(modalityId ? { trainingClass: { modalityId } } : {}),
-              },
+const documentTypeWhere = {
+  ...(required ? { isRequired: required === "sim" } : {}),
+  ...(medicalCertificate === "sim"
+    ? {
+        name: {
+          contains: "Atestado",
+          mode: "insensitive" as const,
+        },
+      }
+    : {}),
+};
+
+const reviewStatuses: AthleteDocumentStatus[] = ["uploaded", "under_review"];
+
+const where = {
+  ...(athleteId ? { athleteId } : {}),
+  ...(Number.isFinite(referenceYear) ? { referenceYear } : {}),
+  ...(documentTypeId ? { documentTypeId } : {}),
+  ...(status ? { status: status as AthleteDocumentStatus } : {}),
+  ...(Object.keys(documentTypeWhere).length > 0
+    ? {
+        documentType: {
+          is: documentTypeWhere,
+        },
+      }
+    : {}),
+  ...(modalityId || trainingClassId
+    ? {
+        athlete: {
+          classes: {
+            some: {
+              ...(trainingClassId ? { trainingClassId } : {}),
+              ...(modalityId ? { trainingClass: { modalityId } } : {}),
             },
           },
+        },
+      }
+    : {}),
+  ...(alert === "vencidos"
+    ? { OR: [{ expirationDate: { lt: today } }, { expiresAt: { lt: today } }] }
+    : alert === "vencendo"
+      ? {
+          OR: [
+            { expirationDate: { gte: today, lte: thirtyDays } },
+            { expiresAt: { gte: today, lte: thirtyDays } },
+          ],
         }
-      : {}),
-    ...(alert === "vencidos"
-      ? { OR: [{ expirationDate: { lt: today } }, { expiresAt: { lt: today } }] }
-      : alert === "vencendo"
-        ? {
-            OR: [
-              { expirationDate: { gte: today, lte: thirtyDays } },
-              { expiresAt: { gte: today, lte: thirtyDays } },
-            ],
-          }
-        : alert === "analise"
-          ? { status: { in: ["uploaded", "under_review"] } }
-          : {}),
-  };
+      : alert === "analise"
+        ? { status: { in: reviewStatuses } }
+        : {}),
+};
 
   const [documents, athletes, documentTypes, modalities, classes] = await Promise.all([
     getPrisma().athleteDocument.findMany({

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Prisma, type AthleteStatus, type MonthlyFeeStatus } from "@prisma/client";
+import type { AthleteStatus, MonthlyFeeStatus } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   monthlyFeeStatusClass,
   monthlyFeeStatusLabel,
   monthlyFeeStatusOptions,
+  netAmount,
   outstandingAmount,
   paidAmount,
   paymentMethodLabel,
@@ -47,7 +48,7 @@ export default async function MonthlyFeesPage({
 
   const query = await searchParams;
   const filters = buildFilters(query);
-  const athleteWhere: Prisma.AthleteWhereInput = {
+  const athleteWhere = {
     ...(filters.athleteId ? { id: filters.athleteId } : {}),
     ...(filters.athleteStatus ? { status: filters.athleteStatus } : {}),
     ...(filters.modalityId || filters.trainingClassId
@@ -65,7 +66,7 @@ export default async function MonthlyFeesPage({
         }
       : {}),
   };
-  const where: Prisma.MonthlyFeeWhereInput = {
+  const where = {
     ...(filters.month ? { referenceMonth: filters.month } : {}),
     ...(filters.year ? { referenceYear: filters.year } : {}),
     ...(filters.status && filters.status !== "overdue"
@@ -80,10 +81,15 @@ export default async function MonthlyFeesPage({
         }
       : {}),
     ...(Object.keys(athleteWhere).length > 0 ? { athlete: athleteWhere } : {}),
-    ...(filters.guardian
+       ...(filters.guardian
       ? {
           financialGuardian: {
-            fullName: { contains: filters.guardian, mode: "insensitive" },
+            is: {
+              fullName: {
+                contains: filters.guardian,
+                mode: "insensitive" as const,
+              },
+            },
           },
         }
       : {}),
@@ -310,18 +316,18 @@ function buildSummary(fees: Array<{
   athleteId: string;
   status: MonthlyFeeStatus;
   dueDate: Date;
-  amount: Prisma.Decimal;
-  discountAmount: Prisma.Decimal;
-  payments: Array<{ amount: Prisma.Decimal }>;
+  amount: { toNumber: () => number } | number | string;
+  discountAmount: { toNumber: () => number } | number | string;
+  payments: Array<{ amount: { toNumber: () => number } | number | string }>;
 }>) {
   const expected = fees
     .filter((fee) => !["exempt", "canceled"].includes(fee.status))
-    .reduce((total, fee) => total.plus(fee.amount.minus(fee.discountAmount)), new Prisma.Decimal(0));
-  const received = fees.reduce((total, fee) => total.plus(paidAmount(fee.payments)), new Prisma.Decimal(0));
-  const open = fees.reduce((total, fee) => total.plus(outstandingAmount(fee)), new Prisma.Decimal(0));
+    .reduce((total, fee) => total + netAmount(fee), 0);
+  const received = fees.reduce((total, fee) => total + paidAmount(fee.payments), 0);
+  const open = fees.reduce((total, fee) => total + outstandingAmount(fee), 0);
   const overdue = fees
     .filter((fee) => effectiveMonthlyFeeStatus(fee) === "overdue")
-    .reduce((total, fee) => total.plus(outstandingAmount(fee)), new Prisma.Decimal(0));
+    .reduce((total, fee) => total + outstandingAmount(fee), 0);
   const defaultingAthletes = new Set(
     fees
       .filter((fee) => effectiveMonthlyFeeStatus(fee) === "overdue")

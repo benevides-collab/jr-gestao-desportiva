@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import type { AttendanceStatus, Prisma } from "@prisma/client";
+import type { AttendanceStatus } from "@prisma/client";
 
 import {
   FilterActions,
@@ -41,7 +41,7 @@ export default async function AttendanceReportPage({ searchParams }: PageProps) 
   const status = query.status ?? "";
   const classScope = await scopedTrainingClassWhere(user);
 
-  const where: Prisma.AttendanceWhereInput = {
+  const where = {
     ...(dateFrom || dateTo
       ? {
           attendanceDate: {
@@ -226,4 +226,3 @@ export default async function AttendanceReportPage({ searchParams }: PageProps) 
     </div>
   );
 }
-

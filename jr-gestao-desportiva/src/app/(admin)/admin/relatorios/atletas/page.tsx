@@ -1,6 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { AthleteStatus, Gender, Prisma } from "@prisma/client";
+import type { AthleteStatus, Gender } from "@prisma/client";
 
 import {
   FilterActions,
@@ -46,11 +46,11 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
   const joinedTo = query.entradaFinal ?? "";
   const search = query.busca ?? "";
 
-  const athleteWhere: Prisma.AthleteWhereInput = {
+  const athleteWhere = {
     ...(status ? { status: status as AthleteStatus } : {}),
     ...(gender ? { gender: gender as Gender } : {}),
     ...(search
-      ? { fullName: { contains: search, mode: "insensitive" } }
+      ? { fullName: { contains: search, mode: "insensitive" as const } }
       : {}),
     ...(joinedFrom || joinedTo
       ? {
@@ -141,8 +141,8 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <ReportPageHeader
-        title="Relatório de atletas"
-        description="Consulta operacional de cadastro, vínculos e pendências gerais."
+        title="RelatÃ³rio de atletas"
+        description="Consulta operacional de cadastro, vÃ­nculos e pendÃªncias gerais."
         exportHref={exportHref}
       />
 
@@ -156,7 +156,7 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
           label="Menores"
           value={String(athletes.filter((athlete) => isMinor(athlete.birthDate)).length)}
         />
-        <SummaryCard label="Sem responsável legal" value={String(minorsWithoutGuardian)} />
+        <SummaryCard label="Sem responsÃ¡vel legal" value={String(minorsWithoutGuardian)} />
         <SummaryCard label="Sem escola" value={String(withoutSchool)} />
       </div>
 
@@ -186,7 +186,7 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
               options={[
                 { value: "", label: "Todos" },
                 { value: "sim", label: "Sim" },
-                { value: "nao", label: "Não" },
+                { value: "nao", label: "NÃ£o" },
               ]}
             />
             <SelectFilter
@@ -229,13 +229,13 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
               ]}
             />
             <SelectFilter
-              label="Responsável legal"
+              label="ResponsÃ¡vel legal"
               name="responsavelLegal"
               value={legalGuardian}
               options={[
                 { value: "", label: "Todos" },
-                { value: "com", label: "Com responsável legal" },
-                { value: "sem", label: "Sem responsável legal" },
+                { value: "com", label: "Com responsÃ¡vel legal" },
+                { value: "sem", label: "Sem responsÃ¡vel legal" },
               ]}
             />
             <SelectFilter
@@ -249,7 +249,7 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
               ]}
             />
             <SelectFilter
-              label="Médico/Saúde"
+              label="MÃ©dico/SaÃºde"
               name="medico"
               value={medical}
               options={[
@@ -284,12 +284,12 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3">Idade</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Modalidade/Turma</th>
-                <th className="px-4 py-3">Responsável legal</th>
+                <th className="px-4 py-3">ResponsÃ¡vel legal</th>
                 <th className="px-4 py-3">Contato</th>
                 <th className="px-4 py-3">Escola</th>
                 <th className="px-4 py-3">Professor</th>
                 <th className="px-4 py-3">Entrada</th>
-                <th className="px-4 py-3">Pendências</th>
+                <th className="px-4 py-3">PendÃªncias</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200">
@@ -297,9 +297,9 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
                 const legal = athlete.guardians.find((link) => link.isLegalGuardian);
                 const currentSchool = athlete.schools.find((link) => link.isCurrent);
                 const pending = [
-                  isMinor(athlete.birthDate) && !legal ? "Sem responsável legal" : null,
+                  isMinor(athlete.birthDate) && !legal ? "Sem responsÃ¡vel legal" : null,
                   !currentSchool ? "Sem escola" : null,
-                  !athlete.medicalInfo ? "Sem médico/saúde" : null,
+                  !athlete.medicalInfo ? "Sem mÃ©dico/saÃºde" : null,
                   athlete.classes.length === 0 ? "Sem turma" : null,
                 ].filter(Boolean);
 
@@ -331,7 +331,7 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
                       ].join(", ") || "-"}
                     </td>
                     <td className="px-4 py-3">{formatDate(athlete.joinedAt)}</td>
-                    <td className="px-4 py-3">{pending.join(", ") || "Sem pendências"}</td>
+                    <td className="px-4 py-3">{pending.join(", ") || "Sem pendÃªncias"}</td>
                   </tr>
                 );
               })}

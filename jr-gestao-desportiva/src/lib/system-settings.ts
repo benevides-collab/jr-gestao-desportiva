@@ -1,7 +1,5 @@
 import "server-only";
 
-import type { Prisma } from "@prisma/client";
-
 import {
   dashboardCardDefinitions,
   type DashboardCardId,
@@ -99,10 +97,10 @@ export async function saveSystemSettings(settings: SystemSettings) {
     where: { key: settingsKey },
     create: {
       key: settingsKey,
-      value: settings as unknown as Prisma.InputJsonValue,
+      value: settings as never,
     },
     update: {
-      value: settings as unknown as Prisma.InputJsonValue,
+      value: settings as never,
     },
   });
 }
@@ -118,7 +116,7 @@ export async function dashboardCardsForProfileFromSettings(profile: Profile) {
   );
 }
 
-function mergeSettings(value: Prisma.JsonValue): SystemSettings {
+function mergeSettings(value: unknown): SystemSettings {
   const raw = typeof value === "object" && value !== null ? value : {};
   const incoming = raw as Partial<SystemSettings>;
 
@@ -145,4 +143,3 @@ function mergeSettings(value: Prisma.JsonValue): SystemSettings {
     },
   };
 }
-

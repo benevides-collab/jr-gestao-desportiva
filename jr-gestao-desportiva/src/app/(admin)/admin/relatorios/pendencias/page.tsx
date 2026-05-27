@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import type { AthleteStatus, Prisma } from "@prisma/client";
+import type { AthleteStatus } from "@prisma/client";
 
 import {
   FilterActions,
@@ -57,7 +57,7 @@ export default async function CriticalPendingReportPage({ searchParams }: PagePr
   const minor = query.menor ?? "";
   const status = query.status ?? "";
 
-  const where: Prisma.AthleteWhereInput = {
+  const where = {
     ...(athleteId ? { id: athleteId } : {}),
     ...(status ? { status: status as AthleteStatus } : {}),
     ...(modalityId || trainingClassId
@@ -396,4 +396,3 @@ export default async function CriticalPendingReportPage({ searchParams }: PagePr
     </div>
   );
 }
-

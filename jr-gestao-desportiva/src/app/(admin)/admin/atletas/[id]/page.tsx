@@ -1,7 +1,6 @@
 ﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Edit, ShieldAlert } from "lucide-react";
-import type { Prisma } from "@prisma/client";
 
 import { inactivateAthlete } from "@/app/(admin)/admin/atletas/actions";
 import { saveAthleteSchool } from "@/app/(admin)/admin/atletas/[id]/escola/actions";
@@ -83,54 +82,71 @@ import {
   paymentMethodOptions,
 } from "@/lib/finance";
 
-type AthleteDetails = Prisma.AthleteGetPayload<{
-  include: {
-    address: true;
-    guardians: {
-      include: { guardian: true };
-    };
-    schools: {
-      include: { school: { include: { address: true } } };
-    };
-    medicalInfo: {
-      include: {
-        doctor: { include: { address: true } };
-        surgeries: true;
-      };
-    };
-    classes: {
-      include: {
-        trainingClass: {
-          include: {
-            modality: true;
-            trainingLocation: true;
-            teacher: true;
-            assistants: { include: { staffMember: true } };
-            schedules: true;
-          };
-        };
-      };
-    };
-    competitions: {
-      include: {
-        competition: { include: { modality: true } };
-      };
-    };
-    monthlyFees: {
-      include: {
-        financialGuardian: true;
-        payments: true;
-      };
-    };
-  };
-}>;
+async function loadAthleteDetails(id: string) {
+  return getPrisma().athlete.findUnique({
+    where: { id },
+    include: {
+      address: true,
+      guardians: {
+        include: { guardian: true },
+        orderBy: { createdAt: "asc" },
+      },
+      schools: {
+        include: { school: { include: { address: true } } },
+        orderBy: [{ isCurrent: "desc" }, { startedAt: "desc" }],
+      },
+      medicalInfo: {
+        include: {
+          doctor: { include: { address: true } },
+          surgeries: { orderBy: { surgeryDate: "desc" } },
+        },
+      },
+      classes: {
+        include: {
+          trainingClass: {
+            include: {
+              modality: true,
+              trainingLocation: true,
+              teacher: true,
+              assistants: { include: { staffMember: true } },
+              schedules: { orderBy: [{ weekday: "asc" }, { startTime: "asc" }] },
+            },
+          },
+        },
+        orderBy: { joinedAt: "desc" },
+      },
+      competitions: {
+        include: { competition: { include: { modality: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+      monthlyFees: {
+        include: {
+          financialGuardian: true,
+          payments: { orderBy: { paidAt: "desc" } },
+        },
+        orderBy: [{ referenceYear: "desc" }, { referenceMonth: "desc" }],
+      },
+    },
+  });
+}
 
-type AthleteAttendanceRow = Prisma.AttendanceGetPayload<{
-  include: {
-    trainingClass: { include: { modality: true } };
-    recordedByUser: true;
+type AthleteDetails = NonNullable<Awaited<ReturnType<typeof loadAthleteDetails>>>;
+
+type AthleteAttendanceRow = {
+  id: string;
+  attendanceDate: Date;
+  status: AttendanceStatus;
+  notes: string | null;
+  trainingClass: {
+    name: string;
+    modality: {
+      name: string;
+    };
   };
-}>;
+  recordedByUser: {
+    name: string | null;
+  } | null;
+};
 
 type AttendanceClassOption = {
   id: string;
@@ -201,51 +217,7 @@ export default async function AtletaDetalhesrage({
 
   const { id } = await params;
   const query = await searchParams;
-  const athlete = await getPrisma().athlete.findUnique({
-    where: { id },
-    include: {
-      address: true,
-      guardians: {
-        include: { guardian: true },
-        orderBy: { createdAt: "asc" },
-      },
-      schools: {
-        include: { school: { include: { address: true } } },
-        orderBy: [{ isCurrent: "desc" }, { startedAt: "desc" }],
-      },
-      medicalInfo: {
-        include: {
-          doctor: { include: { address: true } },
-          surgeries: { orderBy: { surgeryDate: "desc" } },
-        },
-      },
-      classes: {
-        include: {
-          trainingClass: {
-            include: {
-              modality: true,
-              trainingLocation: true,
-              teacher: true,
-              assistants: { include: { staffMember: true } },
-              schedules: { orderBy: [{ weekday: "asc" }, { startTime: "asc" }] },
-            },
-          },
-        },
-        orderBy: { joinedAt: "desc" },
-      },
-      competitions: {
-        include: { competition: { include: { modality: true } } },
-        orderBy: { createdAt: "desc" },
-      },
-      monthlyFees: {
-        include: {
-          financialGuardian: true,
-          payments: { orderBy: { paidAt: "desc" } },
-        },
-        orderBy: [{ referenceYear: "desc" }, { referenceMonth: "desc" }],
-      },
-    },
-  });
+  const athlete = await loadAthleteDetails(id);
 
   if (!athlete) {
     redirect("/admin/atletas");
@@ -276,7 +248,7 @@ export default async function AtletaDetalhesrage({
       })
     : [];
   const attendanceFilters = buildAttendanceFilters(query);
-  const attendanceWhere: Prisma.AttendanceWhereInput = {
+  const attendanceWhere = {
     athleteId: athlete.id,
     ...(attendanceFilters.trainingClassId
       ? { trainingClassId: attendanceFilters.trainingClassId }
@@ -326,7 +298,7 @@ export default async function AtletaDetalhesrage({
     ).values()
   ).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   const documentFilters = buildDocumentFilters(query);
-  const documentWhere: Prisma.AthleteDocumentWhereInput = {
+  const documentWhere = {
     athleteId: athlete.id,
     ...(documentFilters.referenceYear
       ? { referenceYear: documentFilters.referenceYear }
@@ -1675,7 +1647,7 @@ function AthleteFinanceTab({
             label="Saldo em aberto"
             value={formatCurrency(
               athlete.monthlyFees.reduce(
-                (total, fee) => total + outstandingAmount(fee).toNumber(),
+                (total, fee) => total + outstandingAmount(fee),
                 0
               )
             )}

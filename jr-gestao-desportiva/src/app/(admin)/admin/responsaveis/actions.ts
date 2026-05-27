@@ -1,7 +1,6 @@
 "use server";
 
 import { GuardianType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
@@ -103,7 +102,7 @@ async function findDuplicateGuardian(formData: FormData, ignoredId?: string) {
   const cpf = optionalString(formData, "cpf");
   const email = optionalString(formData, "email");
   const phone = optionalString(formData, "phone");
-  const or: Prisma.GuardianWhereInput[] = [];
+  const or: Array<Record<string, unknown>> = [];
 
   if (cpf) {
     or.push({ cpf });

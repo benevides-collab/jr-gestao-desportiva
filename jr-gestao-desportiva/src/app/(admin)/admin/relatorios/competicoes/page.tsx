@@ -3,7 +3,6 @@ import type {
   CompetitionAthleteStatus,
   CompetitionMedal,
   CompetitionStatus,
-  Prisma,
 } from "@prisma/client";
 
 import {
@@ -52,7 +51,7 @@ export default async function CompetitionReportPage({ searchParams }: PageProps)
     ? await findStaffMemberForUser(user)
     : null;
 
-  const competitionScope: Prisma.CompetitionWhereInput =
+  const competitionScope =
     user.role === "PROFESSOR" || user.role === "ASSISTENTE"
       ? {
           OR: [
@@ -62,7 +61,7 @@ export default async function CompetitionReportPage({ searchParams }: PageProps)
         }
       : {};
 
-  const where: Prisma.CompetitionAthleteWhereInput = {
+  const where = {
     ...(athleteId ? { athleteId } : {}),
     ...(callStatus ? { status: callStatus as CompetitionAthleteStatus } : {}),
     ...(medal ? { medal: medal as CompetitionMedal } : {}),

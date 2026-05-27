@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import type { MonthlyFeeStatus, Prisma } from "@prisma/client";
+import type { MonthlyFeeStatus } from "@prisma/client";
 
 import {
   FilterActions,
@@ -46,7 +46,7 @@ export default async function MonthlyFeesReportPage({ searchParams }: PageProps)
   const modalityId = query.modalidade ?? "";
   const trainingClassId = query.turma ?? "";
 
-  const where: Prisma.MonthlyFeeWhereInput = {
+  const where = {
     ...(month ? { referenceMonth: Number.parseInt(month, 10) } : {}),
     ...(year ? { referenceYear: Number.parseInt(year, 10) } : {}),
     ...(athleteId ? { athleteId } : {}),
@@ -104,9 +104,9 @@ export default async function MonthlyFeesReportPage({ searchParams }: PageProps)
     status === "overdue"
       ? feesRaw.filter((fee) => effectiveMonthlyFeeStatus(fee) === "overdue")
       : feesRaw;
-  const totalExpected = fees.reduce((total, fee) => total + netAmount(fee).toNumber(), 0);
-  const totalPaid = fees.reduce((total, fee) => total + paidAmount(fee.payments).toNumber(), 0);
-  const totalOpen = fees.reduce((total, fee) => total + outstandingAmount(fee).toNumber(), 0);
+  const totalExpected = fees.reduce((total, fee) => total + netAmount(fee), 0);
+  const totalPaid = fees.reduce((total, fee) => total + paidAmount(fee.payments), 0);
+  const totalOpen = fees.reduce((total, fee) => total + outstandingAmount(fee), 0);
   const overdue = fees.filter((fee) => effectiveMonthlyFeeStatus(fee) === "overdue");
   const exportHref = `/admin/relatorios/mensalidades/exportar?${new URLSearchParams(
     Object.entries(query).filter(([, value]) => value) as [string, string][],
@@ -127,7 +127,7 @@ export default async function MonthlyFeesReportPage({ searchParams }: PageProps)
         <SummaryCard
           label="Atrasado"
           value={formatCurrency(
-            overdue.reduce((total, fee) => total + outstandingAmount(fee).toNumber(), 0),
+            overdue.reduce((total, fee) => total + outstandingAmount(fee), 0),
           )}
         />
         <SummaryCard
@@ -261,4 +261,3 @@ export default async function MonthlyFeesReportPage({ searchParams }: PageProps)
     </div>
   );
 }
-
