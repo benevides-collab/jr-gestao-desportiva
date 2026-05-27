@@ -1,11 +1,12 @@
 "use server";
 
-import type { SchoolType } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
 import { canManageAthletes } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
+
+type SchoolTypeValue = "public" | "private" | "special" | "other" | "not_informed";
 
 function optionalString(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -19,9 +20,17 @@ function requiredString(formData: FormData, key: string) {
 
 function schoolTypeValue(formData: FormData) {
   const value = requiredString(formData, "schoolType");
-  const validValues = ["public", "private", "special", "other", "not_informed"];
+  const validValues: SchoolTypeValue[] = [
+    "public",
+    "private",
+    "special",
+    "other",
+    "not_informed",
+  ];
 
-  return (validValues.includes(value) ? value : "not_informed") as SchoolType;
+  return validValues.includes(value as SchoolTypeValue)
+    ? (value as SchoolTypeValue)
+    : "not_informed";
 }
 
 function optionalDate(formData: FormData, key: string) {
