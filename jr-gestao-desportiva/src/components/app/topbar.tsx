@@ -13,9 +13,9 @@ type TopbarProps = {
 export function Topbar({ user }: TopbarProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 shadow-sm backdrop-blur">
-      <div className="flex h-20 items-center justify-between gap-4 px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <BrandLogo className="w-14 lg:w-16" />
+      <div className="flex min-h-20 items-center justify-between gap-3 px-3 py-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <BrandLogo className="w-12 shrink-0 sm:w-14 lg:w-16" />
           <div className="hidden sm:block">
             <p className="text-sm font-black uppercase tracking-wide text-zinc-950">
               Associação Paradesportiva JR-SP
@@ -25,7 +25,7 @@ export function Topbar({ user }: TopbarProps) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="hidden text-right sm:block">
             <p className="text-sm font-bold text-zinc-950">{user.name}</p>
             <p className="flex items-center justify-end gap-1 text-xs font-semibold text-zinc-500">

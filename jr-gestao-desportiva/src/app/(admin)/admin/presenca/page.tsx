@@ -149,8 +149,46 @@ export default async function AdminPresencaPage({ searchParams }: PageProps) {
       </div>
 
       <Card>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[920px] text-left text-sm">
+        <CardContent className="p-0">
+          <div className="space-y-3 p-4 md:hidden">
+            {attendances.map((attendance) => (
+              <div
+                key={attendance.id}
+                className="rounded-md border border-zinc-200 bg-white p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <Link
+                    href={`/admin/atletas/${attendance.athleteId}?aba=presenca`}
+                    className="break-words text-sm font-black text-zinc-950"
+                  >
+                    {attendance.athlete.fullName}
+                  </Link>
+                  <Badge>{attendanceStatusLabel(attendance.status)}</Badge>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-3 text-xs text-zinc-600">
+                  <div>
+                    <dt className="font-bold uppercase text-zinc-500">Data</dt>
+                    <dd>{attendance.attendanceDate.toLocaleDateString("pt-BR")}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-bold uppercase text-zinc-500">Turma</dt>
+                    <dd>{attendance.trainingClass.name}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-bold uppercase text-zinc-500">Observação</dt>
+                    <dd>{attendance.notes ?? "-"}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-bold uppercase text-zinc-500">Registrado por</dt>
+                    <dd>{attendance.recordedByUser?.name ?? "-"}</dd>
+                  </div>
+                </dl>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[920px] text-left text-sm">
             <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Data</th>
@@ -185,7 +223,8 @@ export default async function AdminPresencaPage({ searchParams }: PageProps) {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>

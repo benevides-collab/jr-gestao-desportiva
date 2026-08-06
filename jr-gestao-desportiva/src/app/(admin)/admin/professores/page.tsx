@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { PersonAvatar } from "@/components/app/person-avatar";
@@ -49,11 +49,11 @@ export default async function TreinadoresPage() {
             <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Nome</th>
-                <th className="px-4 py-3">FunÃ§Ã£o</th>
+                <th className="px-4 py-3">Função</th>
                 <th className="px-4 py-3">Contato</th>
                 <th className="px-4 py-3">Modalidades</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">AÃ§Ãµes</th>
+                <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200">

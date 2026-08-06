@@ -221,8 +221,63 @@ export default async function MonthlyFeesPage({
       </Card>
 
       <Card>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[1100px] text-left text-sm">
+        <CardContent className="p-0">
+          <div className="space-y-3 p-4 md:hidden">
+            {fees.map((fee) => {
+              const status = effectiveMonthlyFeeStatus(fee);
+              const lastPayment = fee.payments[0];
+
+              return (
+                <div
+                  key={fee.id}
+                  className="rounded-md border border-zinc-200 bg-white p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/admin/atletas/${fee.athleteId}?aba=financeiro`}
+                      className="break-words text-sm font-black text-zinc-950"
+                    >
+                      {fee.athlete.fullName}
+                    </Link>
+                    <Badge className={monthlyFeeStatusClass(status)}>
+                      {monthlyFeeStatusLabel(status)}
+                    </Badge>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-xs text-zinc-600">
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Competência</dt>
+                      <dd>
+                        {fee.referenceMonth.toString().padStart(2, "0")}/{fee.referenceYear}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Vencimento</dt>
+                      <dd>{formatDate(fee.dueDate)}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Valor</dt>
+                      <dd>{formatCurrency(fee.amount)}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Saldo</dt>
+                      <dd>{formatCurrency(outstandingAmount(fee))}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-bold uppercase text-zinc-500">Responsável</dt>
+                      <dd>{fee.financialGuardian?.fullName ?? "-"}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-bold uppercase text-zinc-500">Pagamento</dt>
+                      <dd>{lastPayment ? paymentMethodLabel(lastPayment.method) : "-"}</dd>
+                    </div>
+                  </dl>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Atleta</th>
@@ -270,7 +325,8 @@ export default async function MonthlyFeesPage({
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
           {fees.length === 0 ? (
             <div className="p-6 text-sm font-semibold text-zinc-600">
               Nenhuma mensalidade encontrada.

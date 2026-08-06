@@ -17,8 +17,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const hasError = params.erro === "credenciais";
 
   return (
-    <main className="min-h-screen bg-zinc-100 text-zinc-950">
-      <div className="grid min-h-screen lg:grid-cols-[1fr_520px]">
+    <main className="min-h-dvh overflow-x-hidden bg-zinc-100 text-zinc-950">
+      <div className="grid min-h-dvh lg:grid-cols-[1fr_520px]">
         <section className="hidden bg-jr-black text-white lg:flex lg:flex-col lg:justify-between">
           <div className="p-10">
             <BrandLogo className="w-44" priority />
@@ -38,10 +38,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <div className="h-2 bg-jr-red" />
         </section>
 
-        <section className="flex items-center justify-center px-5 py-10">
-          <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+        <section className="flex items-center justify-center px-3 py-6 sm:px-5 sm:py-10">
+          <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="mb-8 flex flex-col items-center text-center">
-              <BrandLogo className="w-36" priority />
+              <BrandLogo className="w-28 sm:w-36" priority />
               <p className="mt-5 text-sm font-semibold uppercase tracking-wide text-jr-red">
                 Associação Paradesportiva JR-SP
               </p>

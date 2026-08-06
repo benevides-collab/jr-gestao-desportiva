@@ -31,7 +31,7 @@ export default async function NovaTurmaPage() {
           Nova turma
         </h1>
         <p className="mt-2 text-sm text-zinc-600">
-          Cadastre uma turma com modalidade, local, treinador, assistentes e horÃ¡rios.
+          Cadastre uma turma com modalidade, local, treinador, assistentes e horários.
         </p>
       </div>
       <TrainingClassForm

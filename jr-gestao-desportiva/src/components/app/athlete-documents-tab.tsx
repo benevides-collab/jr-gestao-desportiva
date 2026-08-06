@@ -243,8 +243,63 @@ export function AthleteDocumentsTab({
         <CardHeader>
           <CardTitle>Checklist documental de {filters.referenceYear}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[1040px] text-left text-sm">
+        <CardContent className="p-0">
+          <div className="space-y-3 p-4 md:hidden">
+            {applicableTypes.map((type) => {
+              const document = latestByType.get(type.id);
+              const status = document ? effectiveDocumentStatus(document) : "pending";
+
+              return (
+                <div key={type.id} className="rounded-md border border-zinc-200 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-words text-sm font-black text-zinc-950">
+                        {type.name}
+                      </p>
+                      <p className="text-xs text-zinc-600">
+                        {type.periodicity
+                          ? documentPeriodicityLabel(type.periodicity as DocumentPeriodicity)
+                          : "Não informado"}
+                      </p>
+                    </div>
+                    <Badge className={documentStatusClass(status)}>
+                      {documentStatusLabel(status)}
+                    </Badge>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-xs text-zinc-600">
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Obrigatório</dt>
+                      <dd>{type.isRequired ? "Sim" : "Não"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Validade</dt>
+                      <dd>{formatDate(document?.expirationDate ?? document?.expiresAt)}</dd>
+                    </div>
+                  </dl>
+                  {document?.filePath ? (
+                    <Button asChild variant="secondary" size="sm" className="mt-3 w-full">
+                      <Link href={`/admin/documentos/arquivo/${document.id}`} target="_blank">
+                        Visualizar
+                      </Link>
+                    </Button>
+                  ) : null}
+                  {canManage ? (
+                    <div className="mt-3">
+                      <DocumentActions
+                        athleteId={athlete.id}
+                        documentTypeId={type.id}
+                        referenceYear={filters.referenceYear}
+                        document={document}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[1040px] text-left text-sm">
             <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Documento</th>
@@ -311,7 +366,8 @@ export function AthleteDocumentsTab({
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
@@ -319,8 +375,47 @@ export function AthleteDocumentsTab({
         <CardHeader>
           <CardTitle>Histórico de documentos</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[1040px] text-left text-sm">
+        <CardContent className="p-0">
+          <div className="space-y-3 p-4 md:hidden">
+            {documents.map((document) => {
+              const status = effectiveDocumentStatus(document);
+
+              return (
+                <div key={document.id} className="rounded-md border border-zinc-200 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-words text-sm font-black text-zinc-950">
+                        {document.documentType.name}
+                      </p>
+                      <p className="break-words text-xs text-zinc-600">
+                        {document.originalFileName ?? document.fileName ?? "-"}
+                      </p>
+                    </div>
+                    <Badge className={documentStatusClass(status)}>
+                      {documentStatusLabel(status)}
+                    </Badge>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-xs text-zinc-600">
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Ano</dt>
+                      <dd>{document.referenceYear ?? "-"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Enviado</dt>
+                      <dd>{formatDate(document.uploadedAt)}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-bold uppercase text-zinc-500">Análise</dt>
+                      <dd>{document.reviewedByUser?.name ?? "-"} • {formatDate(document.reviewedAt)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[1040px] text-left text-sm">
             <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Ano</th>
@@ -364,7 +459,8 @@ export function AthleteDocumentsTab({
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
           {documents.length === 0 ? (
             <div className="p-6 text-sm font-semibold text-zinc-600">
               Nenhum documento encontrado para os filtros selecionados.
@@ -401,7 +497,7 @@ function DocumentActions({
           type="file"
           name="documentFile"
           accept="application/pdf,image/jpeg,image/png,image/webp"
-          className="max-w-64 text-xs font-semibold text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white"
+          className="w-full text-xs font-semibold text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white"
         />
         <div className="grid gap-2 sm:grid-cols-2">
           <Input name="issueDate" type="date" aria-label="Data de emissão" />

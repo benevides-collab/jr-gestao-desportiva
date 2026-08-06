@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   ClassSchedule,
   Modality,
   StaffMember,
@@ -72,7 +72,7 @@ export function TrainingClassForm({
               </option>
             ))}
           </Select>
-          <Select label="Treinador responsÃ¡vel" name="teacherId" value={trainingClass?.teacherId ?? ""}>
+          <Select label="Treinador responsável" name="teacherId" value={trainingClass?.teacherId ?? ""}>
             <option value="">Selecione</option>
             {teachers.map((teacher) => (
               <option key={teacher.id} value={teacher.id}>
@@ -81,7 +81,7 @@ export function TrainingClassForm({
             ))}
           </Select>
           <Field
-            label="Capacidade mÃ¡xima"
+            label="Capacidade máxima"
             name="capacity"
             type="number"
             value={trainingClass?.capacity?.toString()}
@@ -94,7 +94,7 @@ export function TrainingClassForm({
             <option value="active">Ativa</option>
             <option value="inactive">Inativa</option>
           </Select>
-          <Area label="ObservaÃ§Ãµes" name="notes" value={trainingClass?.notes} />
+          <Area label="Observações" name="notes" value={trainingClass?.notes} />
         </CardContent>
       </Card>
 
@@ -123,7 +123,7 @@ export function TrainingClassForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>HorÃ¡rios</CardTitle>
+          <CardTitle>Horários</CardTitle>
         </CardHeader>
         <CardContent>
           <ScheduleFields schedules={trainingClass?.schedules ?? []} />

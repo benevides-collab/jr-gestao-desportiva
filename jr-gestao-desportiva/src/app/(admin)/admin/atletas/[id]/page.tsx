@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Edit, ShieldAlert } from "lucide-react";
 
@@ -157,24 +157,24 @@ type GuardianLink = AthleteDetails["guardians"][number];
 
 const schoolGradeOptions = [
   "Ensino Infantil",
-  "1Âº ano do Ensino Fundamental I",
-  "2Âº ano do Ensino Fundamental I",
-  "3Âº ano do Ensino Fundamental I",
-  "4Âº ano do Ensino Fundamental I",
-  "5Âº ano do Ensino Fundamental I",
-  "6Âº ano do Ensino Fundamental II",
-  "7Âº ano do Ensino Fundamental II",
-  "8Âº ano do Ensino Fundamental II",
-  "9Âº ano do Ensino Fundamental II",
-  "1Âº ano do Ensino Médio",
-  "2Âº ano do Ensino Médio",
-  "3Âº ano do Ensino Médio",
+  "1º ano do Ensino Fundamental I",
+  "2º ano do Ensino Fundamental I",
+  "3º ano do Ensino Fundamental I",
+  "4º ano do Ensino Fundamental I",
+  "5º ano do Ensino Fundamental I",
+  "6º ano do Ensino Fundamental II",
+  "7º ano do Ensino Fundamental II",
+  "8º ano do Ensino Fundamental II",
+  "9º ano do Ensino Fundamental II",
+  "1º ano do Ensino Médio",
+  "2º ano do Ensino Médio",
+  "3º ano do Ensino Médio",
   "Ensino Especial",
 ];
 
 const schoolShiftOptions = [
   { value: "morning", label: "Manhã" },
-  { value: "afternoon", label: "rarde" },
+  { value: "afternoon", label: "Tarde" },
   { value: "full_time", label: "Integral" },
   { value: "night", label: "Noite" },
   { value: "not_informed", label: "Não informado" },
@@ -182,8 +182,8 @@ const schoolShiftOptions = [
 
 const schoolTypeOptions = [
   { value: "not_informed", label: "Não informado" },
-  { value: "public", label: "rública" },
-  { value: "private", label: "rrivada" },
+  { value: "public", label: "Pública" },
+  { value: "private", label: "Privada" },
   { value: "special", label: "Especial" },
   { value: "other", label: "Outra" },
 ];
@@ -471,7 +471,7 @@ function GeneralDatarab({
             <Info label="Idade" value={`${age} anos`} />
             <Info label="Nascimento" value={formatDate(athlete.birthDate)} />
             <Info label="Entrada na JR" value={formatDate(athlete.joinedAt)} />
-            <Info label="CrF" value={athlete.cpf ?? "-"} />
+            <Info label="CPF" value={athlete.cpf ?? "-"} />
             <Info label="RG" value={athlete.rg ?? "-"} />
             <Info label="Telefone" value={athlete.phone ?? "-"} />
             <Info label="E-mail" value={athlete.email ?? "-"} />
@@ -479,7 +479,7 @@ function GeneralDatarab({
               label="Sexo"
               value={athlete.gender ? genderLabels[athlete.gender] : "-"}
             />
-            <Info label="ObservaçÃµes" value={athlete.notes ?? "-"} />
+            <Info label="Observações" value={athlete.notes ?? "-"} />
           </CardContent>
         </Card>
       </section>
@@ -489,7 +489,7 @@ function GeneralDatarab({
           <CardTitle>Endereço</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Info label="CEr" value={athlete.address?.postalCode ?? "-"} />
+          <Info label="CEP" value={athlete.address?.postalCode ?? "-"} />
           <Info label="Rua" value={athlete.address?.street ?? "-"} />
           <Info label="Número" value={athlete.address?.number ?? "-"} />
           <Info label="Complemento" value={athlete.address?.complement ?? "-"} />
@@ -526,12 +526,12 @@ function Schoolrab({
           <Info label="Série/Ano" value={currentSchool?.grade ?? "-"} />
           <Info label="rurno" value={schoolShiftLabel(currentSchool?.shift)} />
           <Info
-            label="MatrÃ­cula escolar"
+            label="Matrícula escolar"
             value={currentSchool?.enrollmentNumber ?? "-"}
           />
           <Info label="Telefone da escola" value={currentSchool?.school.phone ?? "-"} />
           <Info label="E-mail da escola" value={currentSchool?.school.email ?? "-"} />
-          <Info label="InÃ­cio" value={formatDate(currentSchool?.startedAt)} />
+          <Info label="Início" value={formatDate(currentSchool?.startedAt)} />
           <Info label="Fim" value={formatDate(currentSchool?.endedAt)} />
         </CardContent>
       </Card>
@@ -583,7 +583,7 @@ function Schoolrab({
                     value={currentSchool?.school.email}
                   />
                   <TextareaInput
-                    label="ObservaçÃµes da escola"
+                    label="Observações da escola"
                     name="schoolGeneralNotes"
                     value={currentSchool?.school.notes}
                   />
@@ -596,7 +596,7 @@ function Schoolrab({
                 </h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   <TextInput
-                    label="CEr"
+                    label="CEP"
                     name="schoolrostalCode"
                     value={currentSchool?.school.address?.postalCode}
                   />
@@ -639,7 +639,7 @@ function Schoolrab({
                 </h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   <TextInput
-                    label="Número da matrÃ­cula escolar"
+                    label="Número da matrícula escolar"
                     name="enrollmentNumber"
                     value={currentSchool?.enrollmentNumber}
                   />
@@ -656,7 +656,7 @@ function Schoolrab({
                     options={schoolShiftOptions}
                   />
                   <div className="space-y-2">
-                    <Label htmlFor="startedAt">Data de inÃ­cio</Label>
+                    <Label htmlFor="startedAt">Data de início</Label>
                     <Input
                       id="startedAt"
                       name="startedAt"
@@ -730,26 +730,26 @@ function Schoolrab({
 
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wide text-zinc-700">
-                  Apoio / Ar
+                  Apoio / AT
                 </h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   <TextInput
-                    label="Nome do Ar"
+                    label="Nome do AT"
                     name="therapeuticCompanionName"
                     value={currentSchool?.therapeuticCompanionName}
                   />
                   <TextInput
-                    label="Telefone do Ar"
+                    label="Telefone do AT"
                     name="therapeuticCompanionPhone"
                     value={currentSchool?.therapeuticCompanionPhone}
                   />
                   <TextInput
-                    label="E-mail do Ar"
+                    label="E-mail do AT"
                     name="therapeuticCompanionEmail"
                     value={currentSchool?.therapeuticCompanionEmail}
                   />
                   <TextareaInput
-                    label="ObservaçÃµes do Ar"
+                    label="Observações do AT"
                     name="therapeuticCompanionNotes"
                     value={currentSchool?.therapeuticCompanionNotes}
                   />
@@ -758,10 +758,10 @@ function Schoolrab({
 
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wide text-zinc-700">
-                  ObservaçÃµes
+                  Observações
                 </h3>
                 <TextareaInput
-                  label="ObservaçÃµes escolares do atleta"
+                  label="Observações escolares do atleta"
                   name="schoolNotes"
                   value={currentSchool?.schoolNotes}
                 />
@@ -824,7 +824,7 @@ function Medicalrab({
       <div className="flex flex-wrap gap-2">
         {missingEmergencyContact ? (
           <Badge className="border-zinc-300 bg-zinc-100 text-zinc-800">
-            Sem contato médico/emergÃªncia
+            Sem contato médico/emergência
           </Badge>
         ) : null}
       </div>
@@ -835,20 +835,20 @@ function Medicalrab({
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Info
-            label="Apto para atividade fÃ­sica"
+            label="Apto para atividade física"
             value={fitLabel(medicalInfo?.isFitForPhysicalActivity)}
           />
           <Info
-            label="RestriçÃµes para treino"
+            label="Restrições para treino"
             value={medicalInfo?.physicalRestrictions ?? "-"}
           />
           <Info label="Alergias relevantes" value={medicalInfo?.allergies ?? "-"} />
           <Info
-            label="Contato de emergÃªncia"
+            label="Contato de emergência"
             value={medicalInfo?.emergencyMedicalContact ?? "-"}
           />
           <Info
-            label="Telefone de emergÃªncia"
+            label="Telefone de emergência"
             value={medicalInfo?.emergencyMedicalPhone ?? "-"}
           />
         </CardContent>
@@ -870,7 +870,7 @@ function Medicalrab({
               <Info label="Telefone" value={medicalInfo?.doctor?.phone ?? "-"} />
               <Info label="E-mail" value={medicalInfo?.doctor?.email ?? "-"} />
               <Info
-                label="ClÃ­nica/Hospital"
+                label="Clínica/Hospital"
                 value={medicalInfo?.doctor?.clinicName ?? "-"}
               />
               <Info label="Cidade" value={medicalInfo?.doctor?.address?.city ?? "-"} />
@@ -880,11 +880,11 @@ function Medicalrab({
 
           <Card>
             <CardHeader>
-              <CardTitle>InformaçÃµes de saúde</CardTitle>
+              <CardTitle>Informações de saúde</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <Info
-                label="Medicamentos de uso contÃ­nuo"
+                label="Medicamentos de uso contínuo"
                 value={medicalInfo?.continuousMedication ?? "-"}
               />
               <Info
@@ -892,7 +892,7 @@ function Medicalrab({
                 value={medicalInfo?.trainingNotes ?? "-"}
               />
               <Info
-                label="ObservaçÃµes médicas internas"
+                label="Observações médicas internas"
                 value={medicalInfo?.internalMedicalNotes ?? "-"}
               />
             </CardContent>
@@ -961,12 +961,12 @@ function MedicalForm({ athlete }: { athlete: AthleteDetails }) {
               <TextInput label="Telefone" name="doctorPhone" value={doctor?.phone} />
               <TextInput label="E-mail" name="doctorEmail" value={doctor?.email} />
               <TextInput
-                label="ClÃ­nica/Hospital"
+                label="Clínica/Hospital"
                 name="doctorClinicName"
                 value={doctor?.clinicName}
               />
               <TextInput
-                label="CEr"
+                label="CEP"
                 name="doctorrostalCode"
                 value={doctor?.address?.postalCode}
               />
@@ -993,11 +993,11 @@ function MedicalForm({ athlete }: { athlete: AthleteDetails }) {
 
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase tracking-wide text-zinc-700">
-              InformaçÃµes de saúde
+              Informações de saúde
             </h3>
             <div className="grid gap-5 md:grid-cols-2">
               <TextareaInput
-                label="RestriçÃµes para atividade fÃ­sica"
+                label="Restrições para atividade física"
                 name="physicalRestrictions"
                 value={medicalInfo?.physicalRestrictions}
               />
@@ -1007,7 +1007,7 @@ function MedicalForm({ athlete }: { athlete: AthleteDetails }) {
                 value={medicalInfo?.allergies}
               />
               <TextareaInput
-                label="Medicamentos de uso contÃ­nuo"
+                label="Medicamentos de uso contínuo"
                 name="continuousMedication"
                 value={medicalInfo?.continuousMedication}
               />
@@ -1017,12 +1017,12 @@ function MedicalForm({ athlete }: { athlete: AthleteDetails }) {
                 value={medicalInfo?.trainingNotes}
               />
               <TextInput
-                label="Contato de emergÃªncia médica"
+                label="Contato de emergência médica"
                 name="emergencyMedicalContact"
                 value={medicalInfo?.emergencyMedicalContact}
               />
               <TextInput
-                label="Telefone de emergÃªncia médica"
+                label="Telefone de emergência médica"
                 name="emergencyMedicalPhone"
                 value={medicalInfo?.emergencyMedicalPhone}
               />
@@ -1037,7 +1037,7 @@ function MedicalForm({ athlete }: { athlete: AthleteDetails }) {
             </h3>
             <div className="grid gap-5 md:grid-cols-2">
               <SelectInput
-                label="Atleta apto para atividade fÃ­sica"
+                label="Atleta apto para atividade física"
                 name="isFitForPhysicalActivity"
                 value={booleanSelectValue(medicalInfo?.isFitForPhysicalActivity)}
                 options={[
@@ -1047,7 +1047,7 @@ function MedicalForm({ athlete }: { athlete: AthleteDetails }) {
                 ]}
               />
               <TextareaInput
-                label="ObservaçÃµes médicas internas"
+                label="Observações médicas internas"
                 name="internalMedicalNotes"
                 value={medicalInfo?.internalMedicalNotes}
               />
@@ -1854,12 +1854,12 @@ function Responsiblerab({
         <div className="space-y-2">
           {isMinor(athlete.birthDate) && !hasLegalGuardian ? (
             <Badge className="border-jr-red/25 bg-jr-red/10 text-jr-red">
-              rendÃªncia: atleta menor sem responsável legal
+              Pendência: atleta menor sem responsável legal
             </Badge>
           ) : null}
           {athlete.status === "active" && !hasEmergencyContact ? (
             <Badge className="border-zinc-300 bg-zinc-100 text-zinc-800">
-              Recomendado: cadastrar contato de emergÃªncia
+              Recomendado: cadastrar contato de emergência
             </Badge>
           ) : null}
         </div>
@@ -1917,7 +1917,7 @@ function Responsiblerab({
                   value={canViewFull ? link.guardian.email ?? "-" : "-"}
                 />
                 <Info
-                  label="CrF"
+                  label="CPF"
                   value={canViewFull ? link.guardian.cpf ?? "-" : "-"}
                 />
               </div>
@@ -1925,7 +1925,7 @@ function Responsiblerab({
               <div className="flex flex-wrap gap-2">
                 {link.isLegalGuardian ? <Badge>Responsável legal</Badge> : null}
                 {link.isFinancialGuardian ? <Badge>Responsável financeiro</Badge> : null}
-                {link.isEmergencyContact ? <Badge>Contato de emergÃªncia</Badge> : null}
+                {link.isEmergencyContact ? <Badge>Contato de emergência</Badge> : null}
                 {link.canPickup ? <Badge>Autorizado a retirar</Badge> : null}
               </div>
 
@@ -1940,7 +1940,7 @@ function Responsiblerab({
       {links.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-sm font-semibold text-zinc-500">
-            Nenhum responsável disponÃ­vel para o seu perfil.
+            Nenhum responsável disponível para o seu perfil.
           </CardContent>
         </Card>
       ) : null}
@@ -2073,7 +2073,7 @@ function LinkEditorForm({
           />
           <LinkCheckbox
             name="isEmergencyContact"
-            label="Contato de emergÃªncia"
+            label="Contato de emergência"
             defaultChecked={link.isEmergencyContact}
           />
           <LinkCheckbox
@@ -2083,7 +2083,7 @@ function LinkEditorForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`linkNotes-${link.id}`}>ObservaçÃµes do vÃ­nculo</Label>
+          <Label htmlFor={`linkNotes-${link.id}`}>Observações do vínculo</Label>
           <textarea
             id={`linkNotes-${link.id}`}
             name="linkNotes"
@@ -2094,7 +2094,7 @@ function LinkEditorForm({
         </div>
         <div className="flex justify-end gap-2">
           <Button type="submit" variant="secondary" size="sm">
-            Salvar vÃ­nculo
+            Salvar vínculo
           </Button>
         </div>
       </form>
@@ -2103,7 +2103,7 @@ function LinkEditorForm({
         <input type="hidden" name="athleteGuardianId" value={link.id} />
         <input type="hidden" name="athleteId" value={athleteId} />
         <Button type="submit" variant="ghost" size="sm">
-          Remover vÃ­nculo
+          Remover vínculo
         </Button>
       </form>
     </>

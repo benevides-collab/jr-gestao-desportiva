@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { redirect } from "next/navigation";
 import type { MonthlyFeeStatus, PaymentMethod } from "@prisma/client";
@@ -21,7 +21,7 @@ function text(formData: FormData, key: string) {
 function requiredText(formData: FormData, key: string) {
   const value = text(formData, key);
   if (!value) {
-    throw new Error(`Campo obrigatÃ³rio: ${key}`);
+    throw new Error(`Campo obrigatório: ${key}`);
   }
   return value;
 }
@@ -30,7 +30,7 @@ function numberValue(formData: FormData, key: string) {
   const value = requiredText(formData, key);
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) {
-    throw new Error(`Campo invÃ¡lido: ${key}`);
+    throw new Error(`Campo inválido: ${key}`);
   }
   return parsed;
 }
@@ -108,7 +108,7 @@ async function requireDatabaseFinanceManager() {
   const sessionUser = await requireFinanceManager();
   const dbUser = await resolveDatabaseUser(sessionUser);
   if (!dbUser) {
-    throw new Error("UsuÃ¡rio nÃ£o autenticado ou invÃ¡lido.");
+    throw new Error("Usuário não autenticado ou inválido.");
   }
   return dbUser;
 }

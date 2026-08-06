@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Search, ShieldAlert } from "lucide-react";
 
@@ -169,7 +169,7 @@ const where = {
             Atletas
           </h1>
           <p className="mt-2 text-sm leading-6 text-zinc-600">
-            Cadastro base de atletas da AssociaÃ§Ã£o Paradesportiva JR-SP.
+            Cadastro base de atletas da Associação Paradesportiva JR-SP.
           </p>
         </div>
         {canManage ? (
@@ -283,83 +283,150 @@ const where = {
           <CardTitle>Lista de atletas</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Idade</TableHead>
-                <TableHead>Sexo</TableHead>
-                <TableHead>Cidade</TableHead>
-                <TableHead>Turmas</TableHead>
-                <TableHead>AÃ§Ãµes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {athletes.map((athlete) => {
-                const age = calculateAge(athlete.birthDate);
-                const minor = age < 18;
+          <div className="space-y-3 md:hidden">
+            {athletes.map((athlete) => {
+              const age = calculateAge(athlete.birthDate);
+              const minor = age < 18;
+              const classesText =
+                athlete.classes.length > 0
+                  ? athlete.classes
+                      .map(
+                        (link) =>
+                          `${link.trainingClass.name} (${link.trainingClass.modality.name})`,
+                      )
+                      .join(", ")
+                  : "Sem turma";
 
-                return (
-                  <TableRow key={athlete.id}>
-                    <TableCell className="font-bold text-zinc-950">
-                      <div className="flex items-center gap-3">
-                        <AthleteAvatar
-                          name={athlete.fullName}
-                          photoUrl={athlete.photoUrl}
-                          className="w-10"
-                        />
-                        <div>
-                          <div>{athlete.fullName}</div>
-                          {athlete.preferredName ? (
-                            <div className="text-xs font-semibold text-zinc-500">
-                              {athlete.preferredName}
-                            </div>
-                          ) : null}
-                          {minor ? (
-                            <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-jr-red/10 px-2 py-1 text-xs font-bold text-jr-red">
-                              <ShieldAlert className="size-3" aria-hidden="true" />
-                              Menor de idade
-                            </span>
+              return (
+                <div
+                  key={athlete.id}
+                  className="rounded-md border border-zinc-200 bg-white p-3"
+                >
+                  <div className="flex gap-3">
+                    <AthleteAvatar
+                      name={athlete.fullName}
+                      photoUrl={athlete.photoUrl}
+                      className="w-14 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h2 className="break-words text-sm font-black text-zinc-950">
+                        {athlete.fullName}
+                      </h2>
+                      {athlete.preferredName ? (
+                        <p className="text-xs font-semibold text-zinc-500">
+                          {athlete.preferredName}
+                        </p>
+                      ) : null}
+                      <p className="mt-2 text-xs font-semibold text-zinc-600">
+                        {age} anos • {athleteStatusLabels[athlete.status]}
+                      </p>
+                      <p className="mt-1 break-words text-xs text-zinc-600">
+                        {classesText}
+                      </p>
+                      {minor ? (
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-jr-red/10 px-2 py-1 text-xs font-bold text-jr-red">
+                          <ShieldAlert className="size-3" aria-hidden="true" />
+                          Menor de idade
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Button asChild variant="secondary" size="sm">
+                      <Link href={`/admin/atletas/${athlete.id}`}>Ver detalhes</Link>
+                    </Button>
+                    {canManage ? (
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={`/admin/atletas/${athlete.id}/editar`}>
+                          Editar
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Idade</TableHead>
+                  <TableHead>Sexo</TableHead>
+                  <TableHead>Cidade</TableHead>
+                  <TableHead>Turmas</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {athletes.map((athlete) => {
+                  const age = calculateAge(athlete.birthDate);
+                  const minor = age < 18;
+
+                  return (
+                    <TableRow key={athlete.id}>
+                      <TableCell className="font-bold text-zinc-950">
+                        <div className="flex items-center gap-3">
+                          <AthleteAvatar
+                            name={athlete.fullName}
+                            photoUrl={athlete.photoUrl}
+                            className="w-10"
+                          />
+                          <div>
+                            <div>{athlete.fullName}</div>
+                            {athlete.preferredName ? (
+                              <div className="text-xs font-semibold text-zinc-500">
+                                {athlete.preferredName}
+                              </div>
+                            ) : null}
+                            {minor ? (
+                              <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-jr-red/10 px-2 py-1 text-xs font-bold text-jr-red">
+                                <ShieldAlert className="size-3" aria-hidden="true" />
+                                Menor de idade
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{athleteStatusLabels[athlete.status]}</TableCell>
+                      <TableCell>{age} anos</TableCell>
+                      <TableCell>
+                        {athlete.gender ? genderLabels[athlete.gender] : "-"}
+                      </TableCell>
+                      <TableCell>{athlete.address?.city ?? "-"}</TableCell>
+                      <TableCell className="max-w-xs text-sm text-zinc-700">
+                        {athlete.classes.length > 0
+                          ? athlete.classes
+                              .map(
+                                (link) =>
+                                  `${link.trainingClass.name} (${link.trainingClass.modality.name})`,
+                              )
+                              .join(", ")
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button asChild variant="secondary" size="sm">
+                            <Link href={`/admin/atletas/${athlete.id}`}>Ver</Link>
+                          </Button>
+                          {canManage ? (
+                            <Button asChild variant="ghost" size="sm">
+                              <Link href={`/admin/atletas/${athlete.id}/editar`}>
+                                Editar
+                              </Link>
+                            </Button>
                           ) : null}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{athleteStatusLabels[athlete.status]}</TableCell>
-                    <TableCell>{age} anos</TableCell>
-                    <TableCell>
-                      {athlete.gender ? genderLabels[athlete.gender] : "-"}
-                    </TableCell>
-                    <TableCell>{athlete.address?.city ?? "-"}</TableCell>
-                    <TableCell className="max-w-xs text-sm text-zinc-700">
-                      {athlete.classes.length > 0
-                        ? athlete.classes
-                            .map(
-                              (link) =>
-                                `${link.trainingClass.name} (${link.trainingClass.modality.name})`,
-                            )
-                            .join(", ")
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button asChild variant="secondary" size="sm">
-                          <Link href={`/admin/atletas/${athlete.id}`}>Ver</Link>
-                        </Button>
-                        {canManage ? (
-                          <Button asChild variant="ghost" size="sm">
-                            <Link href={`/admin/atletas/${athlete.id}/editar`}>
-                              Editar
-                            </Link>
-                          </Button>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
 
           {athletes.length === 0 ? (
             <p className="py-8 text-center text-sm font-semibold text-zinc-500">

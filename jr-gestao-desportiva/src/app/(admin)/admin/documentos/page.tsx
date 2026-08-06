@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { AthleteDocumentStatus } from "@prisma/client";
 
@@ -41,7 +41,7 @@ const alertOptions = [
   { value: "", label: "Todos" },
   { value: "expired", label: "Vencidos" },
   { value: "expiring", label: "Vencendo em 30 dias" },
-  { value: "review", label: "Aguardando anÃ¡lise" },
+  { value: "review", label: "Aguardando análise" },
 ];
 
 export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
@@ -149,7 +149,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
             Documentos anuais
           </h1>
           <p className="mt-2 text-sm text-zinc-600">
-            Controle documental dos atletas, validade, anÃ¡lise e pendÃªncias.
+            Controle documental dos atletas, validade, análise e pendências.
           </p>
         </div>
         {canManage ? (
@@ -161,7 +161,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
 
       {query.erro ? (
         <div className="rounded-md border border-jr-red/20 bg-jr-red/10 p-3 text-sm font-bold text-jr-red">
-          Arquivo indisponÃ­vel para visualizaÃ§Ã£o.
+          Arquivo indisponível para visualização.
         </div>
       ) : null}
 
@@ -169,12 +169,12 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
         <SummaryCard label="Pendentes" value={String(summary.pending)} />
         <SummaryCard label="Vencidos" value={String(summary.expired)} />
         <SummaryCard label="Vencendo em 30 dias" value={String(summary.expiring)} />
-        <SummaryCard label="Aguardando anÃ¡lise" value={String(summary.underReview)} />
+        <SummaryCard label="Aguardando análise" value={String(summary.underReview)} />
         <SummaryCard
-          label="Sem atestado vÃ¡lido"
+          label="Sem atestado válido"
           value={String(summary.withoutValidMedicalCertificate)}
         />
-        <SummaryCard label="DocumentaÃ§Ã£o completa" value={String(summary.complete)} />
+        <SummaryCard label="Documentação completa" value={String(summary.complete)} />
       </div>
 
       <Card>
@@ -270,8 +270,62 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       </Card>
 
       <Card>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[1100px] text-left text-sm">
+        <CardContent className="p-0">
+          <div className="space-y-3 p-4 md:hidden">
+            {documents.map((document) => {
+              const status = effectiveDocumentStatus(document);
+
+              return (
+                <div
+                  key={document.id}
+                  className="rounded-md border border-zinc-200 bg-white p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/admin/atletas/${document.athleteId}?aba=documentos`}
+                        className="break-words text-sm font-black text-zinc-950"
+                      >
+                        {document.athlete.fullName}
+                      </Link>
+                      <p className="mt-1 break-words text-sm font-semibold text-zinc-700">
+                        {document.documentType.name}
+                      </p>
+                    </div>
+                    <Badge className={documentStatusClass(status)}>
+                      {documentStatusLabel(status)}
+                    </Badge>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-xs text-zinc-600">
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Ano</dt>
+                      <dd>{document.referenceYear ?? "-"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold uppercase text-zinc-500">Validade</dt>
+                      <dd>{formatDate(document.expirationDate ?? document.expiresAt)}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-bold uppercase text-zinc-500">Arquivo</dt>
+                      <dd className="break-words">
+                        {document.originalFileName ?? document.fileName ?? "-"}
+                      </dd>
+                    </div>
+                  </dl>
+                  {document.filePath ? (
+                    <Button asChild variant="secondary" size="sm" className="mt-3 w-full">
+                      <Link href={`/admin/documentos/arquivo/${document.id}`} target="_blank">
+                        Visualizar
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="bg-zinc-100 text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Atleta</th>
@@ -279,7 +333,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                 <th className="px-4 py-3">Ano</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Validade</th>
-                <th className="px-4 py-3">AnÃ¡lise</th>
+                <th className="px-4 py-3">Análise</th>
                 <th className="px-4 py-3 text-right">Arquivo</th>
               </tr>
             </thead>
@@ -331,7 +385,8 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
           {documents.length === 0 ? (
             <div className="p-6 text-sm font-semibold text-zinc-600">
               Nenhum documento encontrado para os filtros selecionados.
