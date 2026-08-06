@@ -30,6 +30,7 @@ export default async function TurmaDetalhePage({ params }: PageProps) {
       modality: true,
       trainingLocation: { include: { address: true } },
       teacher: true,
+      teachers: { include: { staffMember: true } },
       assistants: { include: { staffMember: true } },
       schedules: { orderBy: [{ weekday: "asc" }, { startTime: "asc" }] },
       athletes: { include: { athlete: true }, orderBy: { joinedAt: "desc" } },
@@ -73,18 +74,20 @@ export default async function TurmaDetalhePage({ params }: PageProps) {
             <CardTitle>Equipe</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <PersonAvatar
-                name={trainingClass.teacher.fullName}
-                photoUrl={trainingClass.teacher.photoUrl}
-              />
-              <div>
-                <p className="text-sm font-black text-zinc-950">
-                  {trainingClass.teacher.fullName}
-                </p>
-                <p className="text-xs font-semibold text-zinc-500">Treinador</p>
+            {trainerMembers(trainingClass).map((trainer) => (
+              <div key={trainer.id} className="flex items-center gap-3">
+                <PersonAvatar
+                  name={trainer.fullName}
+                  photoUrl={trainer.photoUrl}
+                />
+                <div>
+                  <p className="text-sm font-black text-zinc-950">
+                    {trainer.fullName}
+                  </p>
+                  <p className="text-xs font-semibold text-zinc-500">Treinador</p>
+                </div>
               </div>
-            </div>
+            ))}
             {trainingClass.assistants.map((link) => (
               <div key={link.id} className="flex items-center gap-3">
                 <PersonAvatar
@@ -175,4 +178,20 @@ export default async function TurmaDetalhePage({ params }: PageProps) {
       </Card>
     </div>
   );
+}
+
+function trainerMembers(trainingClass: {
+  teacher: { id: string; fullName: string; photoUrl: string | null };
+  teachers: Array<{
+    staffMember: { id: string; fullName: string; photoUrl: string | null };
+  }>;
+}) {
+  const trainers = new Map<string, { id: string; fullName: string; photoUrl: string | null }>();
+  trainers.set(trainingClass.teacher.id, trainingClass.teacher);
+
+  for (const link of trainingClass.teachers) {
+    trainers.set(link.staffMember.id, link.staffMember);
+  }
+
+  return Array.from(trainers.values());
 }

@@ -14,7 +14,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Painel JR-SP",
-  description: "Painel interno da Associação Paradesportiva JR-SP",
+  description: "Painel interno da Associa\u00e7\u00e3o Paradesportiva JR-SP",
+  icons: {
+    icon: "/brand/logo-jr-sp.png",
+    shortcut: "/brand/logo-jr-sp.png",
+    apple: "/brand/logo-jr-sp.png",
+  },
 };
 
 export default function RootLayout({

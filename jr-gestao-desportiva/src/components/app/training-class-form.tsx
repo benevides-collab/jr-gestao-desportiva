@@ -4,6 +4,7 @@ import type {
   StaffMember,
   TrainingClass,
   TrainingClassAssistant,
+  TrainingClassTeacher,
   TrainingLocation,
 } from "@prisma/client";
 import type { ReactNode } from "react";
@@ -20,6 +21,7 @@ import { Label } from "@/components/ui/label";
 
 type ClassWithRelations = TrainingClass & {
   schedules: ClassSchedule[];
+  teachers: TrainingClassTeacher[];
   assistants: TrainingClassAssistant[];
 };
 
@@ -39,6 +41,14 @@ export function TrainingClassForm({
   const action = trainingClass ? updateTrainingClass : createTrainingClass;
   const selectedAssistants = new Set(
     trainingClass?.assistants.map((link) => link.staffMemberId) ?? []
+  );
+  const selectedTeachers = new Set(
+    trainingClass
+      ? [
+          trainingClass.teacherId,
+          ...trainingClass.teachers.map((link) => link.staffMemberId),
+        ]
+      : []
   );
 
   return (
@@ -72,14 +82,6 @@ export function TrainingClassForm({
               </option>
             ))}
           </Select>
-          <Select label="Treinador responsável" name="teacherId" value={trainingClass?.teacherId ?? ""}>
-            <option value="">Selecione</option>
-            {teachers.map((teacher) => (
-              <option key={teacher.id} value={teacher.id}>
-                {teacher.fullName}
-              </option>
-            ))}
-          </Select>
           <Field
             label="Capacidade máxima"
             name="capacity"
@@ -95,6 +97,35 @@ export function TrainingClassForm({
             <option value="inactive">Inativa</option>
           </Select>
           <Area label="Observações" name="notes" value={trainingClass?.notes} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Treinadores vinculados</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm font-semibold text-zinc-600">
+            Selecione um ou mais treinadores. O primeiro selecionado será usado como
+            treinador principal da turma.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {teachers.map((teacher) => (
+              <label
+                key={teacher.id}
+                className="flex items-center gap-3 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-800"
+              >
+                <input
+                  type="checkbox"
+                  name="teacherId"
+                  value={teacher.id}
+                  defaultChecked={selectedTeachers.has(teacher.id)}
+                  className="size-4 rounded border-zinc-300 accent-jr-red"
+                />
+                {teacher.fullName}
+              </label>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

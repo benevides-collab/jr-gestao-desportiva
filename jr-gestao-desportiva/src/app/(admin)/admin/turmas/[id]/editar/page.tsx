@@ -22,6 +22,7 @@ export default async function EditarTurmaPage({ params }: PageProps) {
         where: { id },
         include: {
           schedules: { orderBy: [{ weekday: "asc" }, { startTime: "asc" }] },
+          teachers: true,
           assistants: true,
         },
       }),

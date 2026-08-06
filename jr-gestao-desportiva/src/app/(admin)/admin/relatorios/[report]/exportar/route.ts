@@ -135,7 +135,14 @@ async function exportAthletes(params: URLSearchParams) {
                 ...(trainingClassId ? { trainingClassId } : {}),
                 trainingClass: {
                   ...(modalityId ? { modalityId } : {}),
-                  ...(teacherId ? { teacherId } : {}),
+                  ...(teacherId
+                    ? {
+                        OR: [
+                          { teacherId },
+                          { teachers: { some: { staffMemberId: teacherId } } },
+                        ],
+                      }
+                    : {}),
                 },
               },
             },
@@ -323,7 +330,14 @@ async function exportAttendance(
         ...classScope,
         ...(trainingClassId ? { id: trainingClassId } : {}),
         ...(modalityId ? { modalityId } : {}),
-        ...(teacherId ? { teacherId } : {}),
+        ...(teacherId
+          ? {
+              OR: [
+                { teacherId },
+                { teachers: { some: { staffMemberId: teacherId } } },
+              ],
+            }
+          : {}),
       },
     },
     include: {

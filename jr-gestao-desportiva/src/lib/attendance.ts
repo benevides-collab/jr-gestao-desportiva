@@ -75,6 +75,7 @@ export async function canAccessTrainingClass(
       id: trainingClassId,
       OR: [
         { teacherId: staff.id },
+        { teachers: { some: { staffMemberId: staff.id } } },
         { assistants: { some: { staffMemberId: staff.id } } },
       ],
     },
@@ -97,6 +98,7 @@ export async function scopedTrainingClassWhere(user: SessionUser) {
   return {
     OR: [
       { teacherId: staff.id },
+      { teachers: { some: { staffMemberId: staff.id } } },
       { assistants: { some: { staffMemberId: staff.id } } },
     ],
   };

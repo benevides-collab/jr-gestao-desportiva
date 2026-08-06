@@ -440,6 +440,7 @@ model StaffMember {
   updatedAt                 DateTime                 @updatedAt
   modalities                StaffModality[]
   taughtClasses             TrainingClass[]          @relation("ClassTeacher")
+  classTeacherLinks         TrainingClassTeacher[]
   assistedClasses           TrainingClass[]          @relation("ClassAssistant")
   classAssistantLinks       TrainingClassAssistant[]
   responsibleCompetitions   Competition[]            @relation("CompetitionResponsibleTeacher")
@@ -479,6 +480,7 @@ model TrainingClass {
   trainingLocation   TrainingLocation         @relation(fields: [trainingLocationId], references: [id])
   teacher            StaffMember              @relation("ClassTeacher", fields: [teacherId], references: [id])
   assistant          StaffMember?             @relation("ClassAssistant", fields: [assistantId], references: [id])
+  teachers           TrainingClassTeacher[]
   assistants         TrainingClassAssistant[]
   schedules          ClassSchedule[]
   athletes           AthleteClass[]
@@ -489,6 +491,19 @@ model TrainingClass {
   @@index([teacherId])
   @@index([assistantId])
   @@map("training_classes")
+}
+
+model TrainingClassTeacher {
+  id              String        @id @default(uuid()) @db.Uuid
+  trainingClassId String        @db.Uuid
+  staffMemberId   String        @db.Uuid
+  createdAt       DateTime      @default(now())
+  trainingClass   TrainingClass @relation(fields: [trainingClassId], references: [id], onDelete: Cascade)
+  staffMember     StaffMember   @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([trainingClassId, staffMemberId])
+  @@index([staffMemberId])
+  @@map("training_class_teachers")
 }
 
 model TrainingClassAssistant {

@@ -23,6 +23,7 @@ export default async function TurmasPage() {
       modality: true,
       trainingLocation: true,
       teacher: true,
+      teachers: { include: { staffMember: true } },
       assistants: { include: { staffMember: true } },
       schedules: { orderBy: [{ weekday: "asc" }, { startTime: "asc" }] },
       athletes: true,
@@ -64,7 +65,8 @@ export default async function TurmasPage() {
                   {trainingClass.modality.name} • {trainingClass.trainingLocation.name}
                 </p>
                 <p className="mt-1 text-sm text-zinc-600">
-                  Treinador: {trainingClass.teacher.fullName}
+                  Treinadores:{" "}
+                  {trainerNames(trainingClass).join(", ") || "-"}
                 </p>
                 <p className="mt-1 text-sm text-zinc-600">
                   Assistentes:{" "}
@@ -99,5 +101,17 @@ export default async function TurmasPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+function trainerNames(trainingClass: {
+  teacher: { fullName: string };
+  teachers: Array<{ staffMember: { fullName: string } }>;
+}) {
+  return Array.from(
+    new Set([
+      trainingClass.teacher.fullName,
+      ...trainingClass.teachers.map((link) => link.staffMember.fullName),
+    ])
   );
 }

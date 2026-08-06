@@ -49,21 +49,37 @@ function assistantIds(formData: FormData) {
   return formData.getAll("assistantId").map((value) => String(value));
 }
 
+function teacherIds(formData: FormData) {
+  return formData
+    .getAll("teacherId")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+}
+
 export async function createTrainingClass(formData: FormData) {
   await requireManager();
   const schedules = scheduleData(formData);
+  const teachers = teacherIds(formData);
   const assistants = assistantIds(formData);
+  const primaryTeacherId = teachers[0];
+
+  if (!primaryTeacherId) {
+    redirect("/admin/turmas/nova");
+  }
 
   const trainingClass = await getPrisma().trainingClass.create({
     data: {
       name: text(formData, "name") ?? "",
       modalityId: text(formData, "modalityId") ?? "",
       trainingLocationId: text(formData, "trainingLocationId") ?? "",
-      teacherId: text(formData, "teacherId") ?? "",
+      teacherId: primaryTeacherId,
       capacity: numberValue(formData, "capacity"),
       notes: text(formData, "notes"),
       isActive: formData.get("status") !== "inactive",
       schedules: { create: schedules },
+      teachers: {
+        create: teachers.map((staffMemberId) => ({ staffMemberId })),
+      },
       assistants: {
         create: assistants.map((staffMemberId) => ({ staffMemberId })),
       },
@@ -81,7 +97,13 @@ export async function updateTrainingClass(formData: FormData) {
   }
 
   const schedules = scheduleData(formData);
+  const teachers = teacherIds(formData);
   const assistants = assistantIds(formData);
+  const primaryTeacherId = teachers[0];
+
+  if (!primaryTeacherId) {
+    redirect(`/admin/turmas/${id}/editar`);
+  }
 
   await getPrisma().trainingClass.update({
     where: { id },
@@ -89,13 +111,17 @@ export async function updateTrainingClass(formData: FormData) {
       name: text(formData, "name") ?? "",
       modalityId: text(formData, "modalityId") ?? "",
       trainingLocationId: text(formData, "trainingLocationId") ?? "",
-      teacherId: text(formData, "teacherId") ?? "",
+      teacherId: primaryTeacherId,
       capacity: numberValue(formData, "capacity"),
       notes: text(formData, "notes"),
       isActive: formData.get("status") !== "inactive",
       schedules: {
         deleteMany: {},
         create: schedules,
+      },
+      teachers: {
+        deleteMany: {},
+        create: teachers.map((staffMemberId) => ({ staffMemberId })),
       },
       assistants: {
         deleteMany: {},

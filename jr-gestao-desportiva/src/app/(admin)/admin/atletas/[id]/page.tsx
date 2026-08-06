@@ -108,6 +108,7 @@ async function loadAthleteDetails(id: string) {
               modality: true,
               trainingLocation: true,
               teacher: true,
+              teachers: { include: { staffMember: true } },
               assistants: { include: { staffMember: true } },
               schedules: { orderBy: [{ weekday: "asc" }, { startTime: "asc" }] },
             },
@@ -1156,7 +1157,7 @@ function Classesrab({
                     {link.trainingClass.trainingLocation.name}
                   </p>
                   <p className="mt-1 text-sm text-zinc-600">
-                    Treinador: {link.trainingClass.teacher.fullName}
+                    Treinadores: {trainingClassTrainerNames(link.trainingClass).join(", ") || "-"}
                   </p>
                   <p className="mt-1 text-sm text-zinc-600">
                     Assistentes:{" "}
@@ -2156,5 +2157,17 @@ function Info({ label, value }: { label: string; value: string }) {
       </p>
       <p className="mt-1 text-sm font-semibold text-zinc-950">{value}</p>
     </div>
+  );
+}
+
+function trainingClassTrainerNames(trainingClass: {
+  teacher: { fullName: string };
+  teachers: Array<{ staffMember: { fullName: string } }>;
+}) {
+  return Array.from(
+    new Set([
+      trainingClass.teacher.fullName,
+      ...trainingClass.teachers.map((link) => link.staffMember.fullName),
+    ])
   );
 }

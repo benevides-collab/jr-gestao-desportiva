@@ -56,7 +56,14 @@ export default async function AttendanceReportPage({ searchParams }: PageProps) 
       ...classScope,
       ...(trainingClassId ? { id: trainingClassId } : {}),
       ...(modalityId ? { modalityId } : {}),
-      ...(teacherId ? { teacherId } : {}),
+      ...(teacherId
+        ? {
+            OR: [
+              { teacherId },
+              { teachers: { some: { staffMemberId: teacherId } } },
+            ],
+          }
+        : {}),
     },
   };
 

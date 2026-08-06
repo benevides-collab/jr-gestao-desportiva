@@ -67,7 +67,14 @@ export default async function AthleteReportPage({ searchParams }: PageProps) {
               ...(trainingClassId ? { trainingClassId } : {}),
               trainingClass: {
                 ...(modalityId ? { modalityId } : {}),
-                ...(teacherId ? { teacherId } : {}),
+                ...(teacherId
+                  ? {
+                      OR: [
+                        { teacherId },
+                        { teachers: { some: { staffMemberId: teacherId } } },
+                      ],
+                    }
+                  : {}),
               },
             },
           },
